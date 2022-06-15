@@ -176,7 +176,6 @@ abstract contract BaseAdapter is
     ) internal {
         ILendPool _pool = downpayment.getBendLendPool();
         IERC721Upgradeable _nftERC721 = IERC721Upgradeable(_nftAsset);
-
         require(_nftERC721.ownerOf(_nftTokenId) == address(this), "Not own nft");
         _nftERC721.approve(address(_pool), _nftTokenId);
         _pool.borrow(address(downpayment.WETH()), _amount, _nftAsset, _nftTokenId, _onBehalfOf, 0);

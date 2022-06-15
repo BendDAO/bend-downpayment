@@ -20,5 +20,5 @@ interface IWrappedPunks is IERC721 {
 
     function registerProxy() external;
 
-    function proxyInfo(address user) external returns (address proxy);
+    function proxyInfo(address user) external view returns (address proxy);
 }

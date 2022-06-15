@@ -139,11 +139,13 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
   }
 
   async function approveBuyerWeth() {
-    await contracts.weth.connect(buyer).approve(contracts.punkAdapter.address, constants.MaxUint256);
+    waitForTx(await contracts.weth.connect(buyer).approve(contracts.punkAdapter.address, constants.MaxUint256));
   }
 
   async function approveBuyerDebtWeth() {
-    await contracts.debtWETH.connect(buyer).approveDelegation(contracts.punkAdapter.address, constants.MaxUint256);
+    waitForTx(
+      await contracts.debtWETH.connect(buyer).approveDelegation(contracts.punkAdapter.address, constants.MaxUint256)
+    );
   }
 
   function exceptDownpayment(price: BigNumber, borowAmount: BigNumber) {
@@ -173,7 +175,7 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
   it("Should approve WETH and debtWETH", async () => {
     await approveBuyerWeth();
     // no debt weth approvement
-    await exceptDownpayment(sellPrice, borowAmount).to.be.not.revertedWith("Insufficient balance");
+    await exceptDownpayment(sellPrice, borowAmount).to.be.reverted;
     await approveBuyerDebtWeth();
     await exceptDownpaymentSuccessed(sellPrice, borowAmount);
   });

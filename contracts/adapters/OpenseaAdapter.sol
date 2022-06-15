@@ -3,7 +3,8 @@ pragma solidity 0.8.9;
 
 import {IOpenseaExchage} from "../interfaces/IOpenseaExchage.sol";
 
-import {BaseAdapter} from "./BaseAdapter.sol";
+import {BaseAdapter, IERC721Upgradeable} from "./BaseAdapter.sol";
+import "hardhat/console.sol";
 
 contract OpenseaAdapter is BaseAdapter {
     string public constant NAME = "Opensea Downpayment Adapter";
@@ -242,7 +243,6 @@ contract OpenseaAdapter is BaseAdapter {
 
     function _exchange(BaseParams memory baseParams, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
-
         openseaExchange.atomicMatch_{value: baseParams.salePrice}(
             _orderParams.addrs,
             _orderParams.uints,

@@ -2,7 +2,7 @@
 pragma solidity 0.8.9;
 
 interface IOpenseaRegistry {
-    function proxies(address owner) external returns (address);
+    function proxies(address owner) external view returns (address);
 
     function registerProxy() external returns (address);
 }

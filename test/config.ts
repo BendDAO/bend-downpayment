@@ -46,9 +46,17 @@ export const PunkMarket: Params<string[]> = {
   [Network.main]: [],
 };
 
-export const OpenseaExchange: Params<string> = {
-  [Network.rinkeby]: "0xdd54d660178b28f6033a953b0e55073cfa7e3744", // OpenseaExchange
-  [Network.main]: "",
+export const BAYC: Params<string> = {
+  [Network.rinkeby]: "0x588D1a07ccdb224cB28dCd8E3dD46E16B3a72b5e",
+  [Network.main]: "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6",
+};
+
+export const OpenseaExchange: Params<string[]> = {
+  [Network.rinkeby]: [
+    "0xdd54d660178b28f6033a953b0e55073cfa7e3744", // OpenseaExchange
+    "0x45B594792a5CDc008D0dE1C1d69FAA3D16B3DDc1", // MerkleValidator
+  ],
+  [Network.main]: [],
 };
 
 export const BendExchange: Params<string[]> = {
@@ -66,6 +74,8 @@ export const BendProtocol: Params<string[]> = {
     "0x6D9BcB420F217c4e1c3F1b8753C47b1E8A85eA1E", // debtWETH
     "0xeb7f1c5548faff6492b298082691a633fb2c5f4d", // bWETH
     "0x8894215794f196018324d191a03ef987A617eb01", // bWPUNK
+    "0x7fE857748dc8e335E3E94cAFE27a63d1F573dF45", // bBAYC
+    "0x04af5eF6100E1025560Be50FF244CB31f60d08c2", // NFTOracle
   ],
   [Network.main]: [],
 };

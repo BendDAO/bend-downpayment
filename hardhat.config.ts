@@ -12,7 +12,7 @@ import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "dotenv/config";
 
-import { Network, NETWORKS_RPC_URL } from "./tasks/config";
+import { Network, NETWORKS_RPC_URL } from "./test/config";
 
 const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY || "";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
@@ -36,6 +36,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
+      chainId: 4,
       initialBaseFeePerGas: 0,
       forking: {
         url: NETWORKS_RPC_URL[Network.rinkeby],
@@ -62,6 +63,12 @@ const config: HardhatUserConfig = {
       {
         version: "0.8.9",
         settings: { optimizer: { enabled: true, runs: 888888 } },
+      },
+      {
+        version: "0.4.26",
+        settings: {
+          optimizer: { enabled: true, runs: 200 },
+        },
       },
     ],
   },

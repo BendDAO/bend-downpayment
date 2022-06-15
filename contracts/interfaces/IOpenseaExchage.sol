@@ -4,6 +4,8 @@ pragma solidity 0.8.9;
 interface IOpenseaExchage {
     function registry() external view returns (address);
 
+    function nonces(address owner) external view returns (uint256);
+
     function atomicMatch_(
         address[14] memory addrs,
         uint256[18] memory uints,
