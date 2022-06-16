@@ -4,14 +4,10 @@ pragma solidity 0.8.9;
 import {IBendExchange} from "../interfaces/IBendExchange.sol";
 import {IAuthorizationManager} from "../interfaces/IAuthorizationManager.sol";
 
-import {PercentageMath} from "../libraries/PercentageMath.sol";
-
 import {BaseAdapter} from "./BaseAdapter.sol";
 
 contract BendExchangeAdapter is BaseAdapter {
-    using PercentageMath for uint256;
-
-    string public constant NAME = "Bend Exchange Downpayment Buy Adapter";
+    string public constant NAME = "Bend Exchange Downpayment Adapter";
     string public constant VERSION = "1.0";
 
     //keccak256("Params(bool isOrderAsk,address maker,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params,address interceptor,bytes interceptorExtra,uint8 makerV,bytes32 makerR,bytes32 makerS,uint256 takerPrice,uint256 takerTokenId,uint256 takerMinPercentageToAsk,bytes takerParams,uint256 nonce2");
@@ -130,7 +126,7 @@ contract BendExchangeAdapter is BaseAdapter {
             );
     }
 
-    function _exchange(BaseParams memory, bytes memory _params) internal override {
+    function _exchange(BaseParams memory baseParams, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
         IBendExchange.TakerOrder memory takerBid;
         {
@@ -163,7 +159,7 @@ contract BendExchangeAdapter is BaseAdapter {
             makerAsk.r = _orderParams.makerR;
             makerAsk.s = _orderParams.makerS;
         }
-        bendExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
+        bendExchange.matchAskWithTakerBidUsingETHAndWETH{value: baseParams.salePrice}(takerBid, makerAsk);
     }
 
     function _decodeParams(bytes memory _params) internal pure returns (Params memory) {

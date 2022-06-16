@@ -76,6 +76,7 @@ contract OpenseaAdapter is BaseAdapter {
     function initialize(address _downpayment, address _openseaExchange) external initializer {
         __BaseAdapter_init(NAME, VERSION, _downpayment);
         openseaExchange = IOpenseaExchage(_openseaExchange);
+        downpayment.WETH().approve(openseaExchange.tokenTransferProxy(), type(uint256).max);
     }
 
     struct CheckOrderParamsLocalVars {
@@ -97,13 +98,20 @@ contract OpenseaAdapter is BaseAdapter {
         CheckOrderParamsLocalVars memory vars;
 
         Params memory _orderParams = _decodeParams(_params);
+        address _WETH = address(downpayment.WETH());
 
         // Check order params
         require(address(this) == _orderParams.addrs[1], "Buyer must be this contract");
         vars.buyerpaymentToken = _orderParams.addrs[6];
         vars.sellerpaymentToken = _orderParams.addrs[13];
-        require(address(0) == vars.buyerpaymentToken, "Buyer payment token should be ETH");
-        require(address(0) == vars.sellerpaymentToken, "Seller payment token should be ETH");
+        require(
+            address(0) == vars.buyerpaymentToken || _WETH == vars.buyerpaymentToken,
+            "Buyer payment token should be ETH or WETH"
+        );
+        require(
+            address(0) == vars.sellerpaymentToken || _WETH == vars.buyerpaymentToken,
+            "Seller payment token should be ETH or WETH"
+        );
         require(
             _orderParams.feeMethodsSidesKindsHowToCalls[2] == _orderParams.feeMethodsSidesKindsHowToCalls[6] &&
                 0 == _orderParams.feeMethodsSidesKindsHowToCalls[2],
@@ -241,21 +249,40 @@ contract OpenseaAdapter is BaseAdapter {
             );
     }
 
-    function _exchange(BaseParams memory baseParams, bytes memory _params) internal override {
+    function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
-        openseaExchange.atomicMatch_{value: baseParams.salePrice}(
-            _orderParams.addrs,
-            _orderParams.uints,
-            _orderParams.feeMethodsSidesKindsHowToCalls,
-            _orderParams.calldataBuy,
-            _orderParams.calldataSell,
-            _orderParams.replacementPatternBuy,
-            _orderParams.replacementPatternSell,
-            _orderParams.staticExtradataBuy,
-            _orderParams.staticExtradataSell,
-            _orderParams.vs,
-            _orderParams.rssMetadata
-        );
+        address _sellerpaymentToken = _orderParams.addrs[13];
+        uint256 paymentValue = _baseParams.salePrice;
+        if (_sellerpaymentToken == address(0)) {
+            downpayment.WETH().withdraw(paymentValue);
+            openseaExchange.atomicMatch_{value: paymentValue}(
+                _orderParams.addrs,
+                _orderParams.uints,
+                _orderParams.feeMethodsSidesKindsHowToCalls,
+                _orderParams.calldataBuy,
+                _orderParams.calldataSell,
+                _orderParams.replacementPatternBuy,
+                _orderParams.replacementPatternSell,
+                _orderParams.staticExtradataBuy,
+                _orderParams.staticExtradataSell,
+                _orderParams.vs,
+                _orderParams.rssMetadata
+            );
+        } else {
+            openseaExchange.atomicMatch_(
+                _orderParams.addrs,
+                _orderParams.uints,
+                _orderParams.feeMethodsSidesKindsHowToCalls,
+                _orderParams.calldataBuy,
+                _orderParams.calldataSell,
+                _orderParams.replacementPatternBuy,
+                _orderParams.replacementPatternSell,
+                _orderParams.staticExtradataBuy,
+                _orderParams.staticExtradataSell,
+                _orderParams.vs,
+                _orderParams.rssMetadata
+            );
+        }
     }
 
     function _decodeParams(bytes memory _params) internal pure returns (Params memory) {

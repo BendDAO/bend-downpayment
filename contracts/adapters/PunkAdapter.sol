@@ -70,8 +70,9 @@ contract PunkAdapter is BaseAdapter {
         return keccak256(abi.encode(_PARAMS_TYPEHASH, _orderParams.punkIndex, _orderParams.buyPrice, _nonce));
     }
 
-    function _exchange(BaseParams memory, bytes memory _params) internal override {
+    function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
+        downpayment.WETH().withdraw(_baseParams.salePrice);
         punksMarket.buyPunk{value: _orderParams.buyPrice}(_orderParams.punkIndex);
     }
 

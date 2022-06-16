@@ -120,7 +120,6 @@ abstract contract BaseAdapter is
 
         // Prepare ETH, need buyer approve WETH to this contract
         require(WETH.transferFrom(vars.buyer, address(this), vars.buyerPayment), "WETH transfer failed");
-        WETH.withdraw(baseParams.salePrice);
 
         // Do opensea exchange
         _exchange(baseParams, vars.params);

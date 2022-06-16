@@ -22,6 +22,7 @@ import { getParams, OpenseaExchange } from "./config";
 import { network } from "hardhat";
 import { IERC721, IOpenseaExchage, MintableERC721, OpenseaAdapter } from "../typechain";
 import { latest } from "./helpers/block-traveller";
+import { Asset } from "opensea-js/lib/types";
 const { parseEther } = utils;
 
 export const NULL_BLOCK_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -39,9 +40,10 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
   let openseaSellerNonce: BigNumber;
   let openseaExchange: IOpenseaExchage;
   let merkleValidator: string;
+  let tokenTransferProxy: string;
   let adapter: OpenseaAdapter;
   let now: BigNumber;
-  let sellOrder: Order;
+  let nftAsset: Asset;
 
   before(async () => {
     now = BigNumber.from(await latest());
@@ -54,18 +56,10 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     adapter = contracts.openseaAdapter;
     openseaExchange = contracts.openseaExchange;
     merkleValidator = config[1];
+    tokenTransferProxy = await contracts.openseaExchange.tokenTransferProxy();
     sellPrice = parseEther("10");
 
-    const nftAsset = { tokenId: tokenId.toString(), tokenAddress: nft.address };
-    sellOrder = createSellOrder(
-      openseaExchange.address,
-      nftAsset,
-      seller.address,
-      sellPrice,
-      now,
-      merkleValidator,
-      env.admin.address
-    );
+    nftAsset = { tokenId: tokenId.toString(), tokenAddress: nft.address };
 
     waitForTx(await nft.connect(seller).mint(tokenId));
 
@@ -75,6 +69,8 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     waitForTx(await contracts.proxyRegistry.connect(seller).registerProxy());
 
     waitForTx(await nft.connect(seller).approve(await contracts.proxyRegistry.proxies(seller.address), tokenId));
+    waitForTx(await contracts.weth.connect(seller).approve(tokenTransferProxy, constants.MaxUint256));
+
     const nftCollateralData = await contracts.bendLendPool.getNftCollateralData(nft.address, contracts.weth.address);
     borrowAmount = nftCollateralData.availableBorrowsInReserve.sub(1);
     await snapshots.capture("init");
@@ -84,7 +80,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     await snapshots.revert("init");
   });
 
-  async function exceptDownpaymentSuccessed(buyOrder: Order, borrowAmount: BigNumber) {
+  async function exceptDownpaymentSuccessed(sellOrder: Order, buyOrder: Order, borrowAmount: BigNumber) {
     const aaveFee = borrowAmount.mul(9).div(10000);
     const bendFee = buyOrder.basePrice.mul(env.fee).div(10000);
     const paymentAmount = buyOrder.basePrice.add(aaveFee).add(bendFee).sub(borrowAmount);
@@ -135,7 +131,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     await contracts.debtWETH.connect(buyer).approveDelegation(adapter.address, constants.MaxUint256);
   }
 
-  function exceptDownpayment(buyOrder: Order, borrowAmount: BigNumber) {
+  function exceptDownpayment(sellOrder: Order, buyOrder: Order, borrowAmount: BigNumber) {
     const sellSig = signOrder(findPrivateKey(seller.address), sellOrder, env.chainId, openseaSellerNonce.toNumber());
     const buySig = signFlashLoanParams(
       findPrivateKey(buyer.address),
@@ -156,7 +152,16 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     return expect(contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, data));
   }
 
-  it("opensea atomic match", async () => {
+  it("opensea match sell order with ETH", async () => {
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
     const sellSig = signOrder(findPrivateKey(seller.address), sellOrder, env.chainId, openseaSellerNonce.toNumber());
     const buyOrder = makeBuyOrder(sellOrder, buyer.address, env.admin.address, sellOrder.listingTime);
     const buySig = signOrder(findPrivateKey(buyer.address), buyOrder, env.chainId, openseaBuyerNonce.toNumber());
@@ -182,38 +187,145 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     expect(await nft.ownerOf(tokenId)).to.be.equal(buyer.address);
   });
 
-  it("Buyer must be this contract", async () => {
-    const buyOrder = makeBuyOrder(sellOrder, env.accounts[3].address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(buyOrder, borrowAmount).to.revertedWith("Buyer must be this contract");
+  it("opensea match sell order with WETH", async () => {
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
+    sellOrder.paymentToken = contracts.weth.address;
+    const sellSig = signOrder(findPrivateKey(seller.address), sellOrder, env.chainId, openseaSellerNonce.toNumber());
+    const buyOrder = makeBuyOrder(sellOrder, buyer.address, env.admin.address, sellOrder.listingTime);
+    const buySig = signOrder(findPrivateKey(buyer.address), buyOrder, env.chainId, openseaBuyerNonce.toNumber());
+    const params = buildAtomicMatchParams(buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH);
+    waitForTx(await contracts.weth.connect(buyer).approve(tokenTransferProxy, constants.MaxUint256));
+    waitForTx(
+      await openseaExchange
+        .connect(buyer)
+        .atomicMatch_(
+          params.addrs,
+          params.uints,
+          params.feeMethodsSidesKindsHowToCalls,
+          params.calldataBuy,
+          params.calldataSell,
+          params.replacementPatternBuy,
+          params.replacementPatternSell,
+          params.staticExtradataBuy,
+          params.staticExtradataSell,
+          params.vs,
+          params.rssMetadata
+        )
+    );
+    expect(await nft.ownerOf(tokenId)).to.be.equal(buyer.address);
   });
-  it("Buyer payment token should be ETH", async () => {
+
+  it("Buyer must be this contract", async () => {
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
+    const buyOrder = makeBuyOrder(sellOrder, env.accounts[3].address, env.admin.address, sellOrder.listingTime);
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Buyer must be this contract");
+  });
+  it("Buyer payment token should be ETH or WETH", async () => {
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
+    sellOrder.paymentToken = "0x0000000000000000000000000000000000000001";
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
-    buyOrder.paymentToken = contracts.weth.address;
-    await exceptDownpayment(buyOrder, borrowAmount).to.revertedWith("Buyer payment token should be ETH");
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith(
+      "Buyer payment token should be ETH or WETH"
+    );
   });
   it("Order must be fixed price sale kind", async () => {
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
     sellOrder.saleKind = 1;
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(buyOrder, borrowAmount).to.revertedWith("Order must be fixed price sale kind");
-    sellOrder.saleKind = 0;
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Order must be fixed price sale kind");
   });
   it("Order price must be same", async () => {
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
     buyOrder.basePrice = buyOrder.basePrice.sub(parseEther("1"));
-    await exceptDownpayment(buyOrder, borrowAmount).to.revertedWith("Order price must be same");
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Order price must be same");
   });
   it("Insufficient balance", async () => {
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(buyOrder, borrowAmount).to.revertedWith("Insufficient balance");
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Insufficient balance");
   });
   it("Should approve WETH and debtWETH", async () => {
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
 
     await approveBuyerWeth();
     // no debt weth approvement
-    await exceptDownpayment(buyOrder, borrowAmount).to.revertedWith("503");
-
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("503");
     await approveBuyerDebtWeth();
-    await exceptDownpaymentSuccessed(buyOrder, borrowAmount);
+    await exceptDownpaymentSuccessed(sellOrder, buyOrder, borrowAmount);
+  });
+
+  it("Sell order with WETH", async () => {
+    await approveBuyerWeth();
+    await approveBuyerDebtWeth();
+    const sellOrder = createSellOrder(
+      openseaExchange.address,
+      nftAsset,
+      seller.address,
+      sellPrice,
+      now,
+      merkleValidator,
+      env.admin.address
+    );
+    sellOrder.paymentToken = contracts.weth.address;
+    const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
+    await exceptDownpaymentSuccessed(sellOrder, buyOrder, borrowAmount);
   });
 });

@@ -2,6 +2,8 @@
 pragma solidity 0.8.9;
 
 interface IOpenseaExchage {
+    function tokenTransferProxy() external view returns (address);
+
     function registry() external view returns (address);
 
     function nonces(address owner) external view returns (uint256);
