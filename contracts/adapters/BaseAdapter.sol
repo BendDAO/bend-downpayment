@@ -2,7 +2,6 @@
 pragma solidity 0.8.9;
 
 import {EIP712Upgradeable, ECDSAUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
-
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -175,10 +174,11 @@ abstract contract BaseAdapter is
         uint256 _amount
     ) internal {
         ILendPool _pool = downpayment.getBendLendPool();
+        address _reserveToken = address(downpayment.WETH());
         IERC721Upgradeable _nftERC721 = IERC721Upgradeable(_nftAsset);
         require(_nftERC721.ownerOf(_nftTokenId) == address(this), "Not own nft");
         _nftERC721.approve(address(_pool), _nftTokenId);
-        _pool.borrow(address(downpayment.WETH()), _amount, _nftAsset, _nftTokenId, _onBehalfOf, 0);
+        _pool.borrow(_reserveToken, _amount, _nftAsset, _nftTokenId, _onBehalfOf, 0);
     }
 
     function _afterBorrowWETH(

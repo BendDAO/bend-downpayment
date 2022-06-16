@@ -76,7 +76,7 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
   let seller: SignerWithAddress;
   let tokenId: number;
   let sellPrice: BigNumber;
-  let borowAmount: BigNumber;
+  let borrowAmount: BigNumber;
   let nonce: BigNumber;
   before(async () => {
     buyer = env.accounts[1];
@@ -91,7 +91,7 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
       contracts.wrappedPunk.address,
       contracts.weth.address
     );
-    borowAmount = nftCollateralData.availableBorrowsInReserve;
+    borrowAmount = nftCollateralData.availableBorrowsInReserve.sub(1);
     nonce = await contracts.downpayment.nonces(buyer.address);
     await snapshots.capture("init");
   });
@@ -100,10 +100,10 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     await snapshots.revert("init");
   });
 
-  async function exceptDownpaymentSuccessed(price: BigNumber, borowAmount: BigNumber) {
-    const aaveFee = borowAmount.mul(9).div(10000);
+  async function exceptDownpaymentSuccessed(price: BigNumber, borrowAmount: BigNumber) {
+    const aaveFee = borrowAmount.mul(9).div(10000);
     const bendFee = price.mul(env.fee).div(10000);
-    const paymentAmount = price.add(aaveFee).add(bendFee).sub(borowAmount);
+    const paymentAmount = price.add(aaveFee).add(bendFee).sub(borrowAmount);
     const expectAaveWethBalance = (await contracts.weth.balanceOf(contracts.aaveLendPool.address)).add(aaveFee);
 
     const expectBendCollectorBWethBalance = (await contracts.bWETH.balanceOf(contracts.bendCollector.address)).add(
@@ -121,7 +121,7 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     waitForTx(
       await contracts.downpayment
         .connect(buyer)
-        .buy(contracts.punkAdapter.address, borowAmount, buildFlashloanParams(tokenId, price, sig))
+        .buy(contracts.punkAdapter.address, borrowAmount, buildFlashloanParams(tokenId, price, sig))
     );
 
     expect(await contracts.punkMarket.punkIndexToAddress(tokenId)).to.be.equal(contracts.wrappedPunk.address);
@@ -148,7 +148,7 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     );
   }
 
-  function exceptDownpayment(price: BigNumber, borowAmount: BigNumber) {
+  function exceptDownpayment(price: BigNumber, borrowAmount: BigNumber) {
     const sig = signFlashLoanParams(
       findPrivateKey(buyer.address),
       env.chainId,
@@ -160,23 +160,23 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     return expect(
       contracts.downpayment
         .connect(buyer)
-        .buy(contracts.punkAdapter.address, borowAmount, buildFlashloanParams(tokenId, price, sig))
+        .buy(contracts.punkAdapter.address, borrowAmount, buildFlashloanParams(tokenId, price, sig))
     );
   }
 
   it("Order price must be same", async () => {
-    await exceptDownpayment(parseEther("9.9"), borowAmount).to.revertedWith("Order price must be same");
+    await exceptDownpayment(parseEther("9.9"), borrowAmount).to.revertedWith("Order price must be same");
   });
 
   it("Insufficient balance", async () => {
-    await exceptDownpayment(sellPrice, borowAmount).to.revertedWith("Insufficient balance");
+    await exceptDownpayment(sellPrice, borrowAmount).to.revertedWith("Insufficient balance");
   });
 
   it("Should approve WETH and debtWETH", async () => {
     await approveBuyerWeth();
     // no debt weth approvement
-    await exceptDownpayment(sellPrice, borowAmount).to.be.reverted;
+    await exceptDownpayment(sellPrice, borrowAmount).to.revertedWith("503");
     await approveBuyerDebtWeth();
-    await exceptDownpaymentSuccessed(sellPrice, borowAmount);
+    await exceptDownpaymentSuccessed(sellPrice, borrowAmount);
   });
 });
