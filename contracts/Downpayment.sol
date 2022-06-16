@@ -14,7 +14,6 @@ import {IWETH} from "./interfaces/IWETH.sol";
 import {IDownpayment} from "./interfaces/IDownpayment.sol";
 
 import {PercentageMath} from "./libraries/PercentageMath.sol";
-import "hardhat/console.sol";
 
 contract Downpayment is Ownable, IDownpayment {
     using SafeERC20 for IERC20;

@@ -18,7 +18,7 @@ const { defaultAbiCoder, keccak256, solidityPack } = utils;
  * @returns splitted signature
  * @see https://docs.ethers.io/v5/api/signer/#Signer-signTypedData
  */
-const signTypedData = async (
+export const signTypedData = async (
   privateKey: string,
   types: string[],
   values: (string | boolean | BigNumber)[],

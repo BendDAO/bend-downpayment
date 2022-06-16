@@ -15,8 +15,6 @@ import {PercentageMath} from "../libraries/PercentageMath.sol";
 import {IWETH} from "../interfaces/IWETH.sol";
 import {IDownpayment} from "../interfaces/IDownpayment.sol";
 
-import "hardhat/console.sol";
-
 abstract contract BaseAdapter is
     IAaveFlashLoanReceiver,
     OwnableUpgradeable,

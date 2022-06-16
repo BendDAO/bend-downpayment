@@ -5,7 +5,6 @@ import {ICryptoPunksMarket} from "../interfaces/ICryptoPunksMarket.sol";
 import {IWrappedPunks} from "../interfaces/IWrappedPunks.sol";
 
 import {BaseAdapter} from "./BaseAdapter.sol";
-import "hardhat/console.sol";
 
 contract PunkAdapter is BaseAdapter {
     string public constant NAME = "Punk Downpayment Adapter";

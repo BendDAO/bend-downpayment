@@ -20,6 +20,6 @@ export function findPrivateKey(publicKey: string): string {
       return "0x701b615bbdfb9de65240bc28bd21bbc0d996645a3dd57e7b12bc2bdf6f192c82";
 
     default:
-      return "0x";
+      throw new Error("No private key found");
   }
 }

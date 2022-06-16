@@ -40,7 +40,7 @@ const config: HardhatUserConfig = {
       initialBaseFeePerGas: 0,
       forking: {
         url: NETWORKS_RPC_URL[Network.rinkeby],
-        blockNumber: 10811738,
+        blockNumber: 10863054,
       },
     },
     rinkeby: {

@@ -4,7 +4,6 @@ pragma solidity 0.8.9;
 import {IOpenseaExchage} from "../interfaces/IOpenseaExchage.sol";
 
 import {BaseAdapter, IERC721Upgradeable} from "./BaseAdapter.sol";
-import "hardhat/console.sol";
 
 contract OpenseaAdapter is BaseAdapter {
     string public constant NAME = "Opensea Downpayment Adapter";
@@ -255,34 +254,22 @@ contract OpenseaAdapter is BaseAdapter {
         uint256 paymentValue = _baseParams.salePrice;
         if (_sellerpaymentToken == address(0)) {
             downpayment.WETH().withdraw(paymentValue);
-            openseaExchange.atomicMatch_{value: paymentValue}(
-                _orderParams.addrs,
-                _orderParams.uints,
-                _orderParams.feeMethodsSidesKindsHowToCalls,
-                _orderParams.calldataBuy,
-                _orderParams.calldataSell,
-                _orderParams.replacementPatternBuy,
-                _orderParams.replacementPatternSell,
-                _orderParams.staticExtradataBuy,
-                _orderParams.staticExtradataSell,
-                _orderParams.vs,
-                _orderParams.rssMetadata
-            );
         } else {
-            openseaExchange.atomicMatch_(
-                _orderParams.addrs,
-                _orderParams.uints,
-                _orderParams.feeMethodsSidesKindsHowToCalls,
-                _orderParams.calldataBuy,
-                _orderParams.calldataSell,
-                _orderParams.replacementPatternBuy,
-                _orderParams.replacementPatternSell,
-                _orderParams.staticExtradataBuy,
-                _orderParams.staticExtradataSell,
-                _orderParams.vs,
-                _orderParams.rssMetadata
-            );
+            paymentValue = 0;
         }
+        openseaExchange.atomicMatch_{value: paymentValue}(
+            _orderParams.addrs,
+            _orderParams.uints,
+            _orderParams.feeMethodsSidesKindsHowToCalls,
+            _orderParams.calldataBuy,
+            _orderParams.calldataSell,
+            _orderParams.replacementPatternBuy,
+            _orderParams.replacementPatternSell,
+            _orderParams.staticExtradataBuy,
+            _orderParams.staticExtradataSell,
+            _orderParams.vs,
+            _orderParams.rssMetadata
+        );
     }
 
     function _decodeParams(bytes memory _params) internal pure returns (Params memory) {

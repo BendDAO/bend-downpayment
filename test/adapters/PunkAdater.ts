@@ -3,13 +3,13 @@
 /* eslint-disable  @typescript-eslint/explicit-module-boundary-types */
 import { expect } from "chai";
 import { BigNumber, constants, utils } from "ethers";
-import { Contracts, Env, makeSuite, Snapshots } from "./_setup";
+import { Contracts, Env, makeSuite, Snapshots } from "../_setup";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { fromRpcSig, ECDSASignature } from "ethereumjs-util";
 import { signTypedData, SignTypedDataVersion } from "@metamask/eth-sig-util";
-import { findPrivateKey } from "./helpers/hardhat-keys";
-import { waitForTx } from "../tasks/utils/helpers";
-import { assertAlmostEqualTol } from "./helpers/equals";
+import { findPrivateKey } from "../helpers/hardhat-keys";
+import { waitForTx } from "../../tasks/utils/helpers";
+import { assertAlmostEqualTol } from "../helpers/equals";
 const { defaultAbiCoder, parseEther } = utils;
 
 export const getSignatureFromTypedData = (privateKey: string, typedData: any): ECDSASignature => {
@@ -81,7 +81,7 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
   before(async () => {
     buyer = env.accounts[1];
     seller = env.accounts[2];
-    tokenId = 8674;
+    tokenId = 8676;
 
     sellPrice = parseEther("10");
     waitForTx(await contracts.punkMarket.connect(seller).getPunk(tokenId));

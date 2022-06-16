@@ -61,8 +61,8 @@ export const OpenseaExchange: Params<string[]> = {
 
 export const BendExchange: Params<string[]> = {
   [Network.rinkeby]: [
-    "0xeF325442a539296f6A77cF746bdF7BC5357Bf21e", // BendExchange
-    "0xb08D5cc233731599d57Ef652150C4bD6C587EB7D", // StrategyStandardSaleForFixedPrice
+    "0x4F8A1d36C7B8386a659410e1C9839fa3c2339BE5", // BendExchange
+    "0x43a851160dE8b03D633ceae07321b5e236aBaBbB", // StrategyStandardSaleForFixedPrice
   ],
   [Network.main]: [],
 };

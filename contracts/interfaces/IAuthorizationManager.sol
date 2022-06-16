@@ -2,11 +2,11 @@
 pragma solidity 0.8.9;
 
 interface IAuthorizationManager {
-    function revoked() external returns (bool);
+    function authorizedAddress() external view returns (address);
 
-    function authorizedAddress() external returns (address);
+    function proxies(address owner) external view returns (address);
 
-    function proxies(address owner) external returns (address);
+    function revoked() external view returns (bool);
 
     function revoke() external;
 

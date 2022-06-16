@@ -3,11 +3,11 @@
 /* eslint-disable  @typescript-eslint/explicit-module-boundary-types */
 import { expect } from "chai";
 import { BigNumber, constants, utils } from "ethers";
-import { Contracts, Env, makeSuite, Snapshots } from "./_setup";
+import { Contracts, Env, makeSuite, Snapshots } from "../_setup";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { findPrivateKey } from "./helpers/hardhat-keys";
-import { waitForTx } from "../tasks/utils/helpers";
-import { assertAlmostEqualTol } from "./helpers/equals";
+import { findPrivateKey } from "../helpers/hardhat-keys";
+import { waitForTx } from "../../tasks/utils/helpers";
+import { assertAlmostEqualTol } from "../helpers/equals";
 import {
   buildAtomicMatchParams,
   buildFlashloanParams,
@@ -17,11 +17,11 @@ import {
   Order,
   signFlashLoanParams,
   signOrder,
-} from "./opensea";
-import { getParams, OpenseaExchange } from "./config";
+} from "../orders/opensea";
+import { getParams, OpenseaExchange } from "../config";
 import { network } from "hardhat";
-import { IERC721, IOpenseaExchage, MintableERC721, OpenseaAdapter } from "../typechain";
-import { latest } from "./helpers/block-traveller";
+import { IERC721, IOpenseaExchage, MintableERC721, OpenseaAdapter } from "../../typechain";
+import { latest } from "../helpers/block-traveller";
 import { Asset } from "opensea-js/lib/types";
 const { parseEther } = utils;
 
@@ -51,7 +51,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     seller = env.accounts[2];
     nft = contracts.bayc;
     bnft = contracts.bBAYC;
-    tokenId = 7210;
+    tokenId = 7211;
     const config = getParams(OpenseaExchange, network.name);
     adapter = contracts.openseaAdapter;
     openseaExchange = contracts.openseaExchange;

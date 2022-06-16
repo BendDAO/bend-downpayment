@@ -21,6 +21,7 @@ import {
   MintableERC721,
   IOpenseaExchage,
   INFTOracle,
+  IBendExchange,
 } from "../typechain";
 import { getParams, WETH, PunkMarket, OpenseaExchange, BendExchange, BendProtocol, BAYC } from "./config";
 import { waitForTx } from "../tasks/utils/helpers";
@@ -47,6 +48,7 @@ export interface Contracts {
   punkAdapter: PunkAdapter;
   openseaAdapter: OpenseaAdapter;
   openseaExchange: IOpenseaExchage;
+  bendExchange: IBendExchange;
   proxyRegistry: IOpenseaRegistry;
   bendExchangeAdapter: BendExchangeAdapter;
   authorizationManager: IAuthorizationManager;
@@ -148,7 +150,7 @@ export async function setupContracts(): Promise<Contracts> {
   const BendExchangeAdapter = await ethers.getContractFactory("BendExchangeAdapter");
   const bendExchangeAdapter = await BendExchangeAdapter.deploy();
   await bendExchangeAdapter.deployed();
-  await bendExchangeAdapter.initialize(downpayment.address, bendExchange.address, authorizationManager.address);
+  await bendExchangeAdapter.initialize(downpayment.address, bendExchange.address);
 
   await downpayment.addAdapter(punkAdapter.address);
   await downpayment.addAdapter(openseaAdapter.address);
@@ -171,6 +173,7 @@ export async function setupContracts(): Promise<Contracts> {
     openseaExchange,
     proxyRegistry,
     bendExchangeAdapter,
+    bendExchange,
     authorizationManager,
     aaveLendPool,
     bendLendPool,
