@@ -9,8 +9,8 @@ import {BaseAdapter} from "./BaseAdapter.sol";
 contract PunkAdapter is BaseAdapter {
     string public constant NAME = "Punk Downpayment Adapter";
     string public constant VERSION = "1.0";
-
-    bytes32 private constant _PARAMS_TYPEHASH = keccak256("Params(uint256 punkIndex,uint256 buyPrice,uint256 nonce)");
+    // keccak256("Params(uint256 punkIndex,uint256 buyPrice,uint256 nonce)")
+    bytes32 private constant _PARAMS_TYPEHASH = 0x6b29cf124b3dc1aa17558842fd2132ad2ce1b133d72a92d497136ab79534ccad;
 
     ICryptoPunksMarket public punksMarket;
     IWrappedPunks public wrappedPunks;

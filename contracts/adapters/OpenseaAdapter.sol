@@ -8,17 +8,12 @@ import {BaseAdapter, IERC721Upgradeable} from "./BaseAdapter.sol";
 contract OpenseaAdapter is BaseAdapter {
     string public constant NAME = "Opensea Downpayment Adapter";
     string public constant VERSION = "1.0";
-
-    bytes32 internal constant _SIGNATURE_TYPEHASH = keccak256("Sig(uint8 v,bytes32 r,bytes32 s)");
-    bytes32 private constant _PARAMS_TYPEHASH =
-        keccak256(
-            "Params(address nftAsset,uint256 nftTokenId,Order buy,Order sell,Sig sellSig,bytes32 metadata,uint256 nonce)Order(address exchange,address maker,address taker,uint256 makerRelayerFee,uint256 takerRelayerFee,uint256 makerProtocolFee,uint256 takerProtocolFee,address feeRecipient,uint8 feeMethod,uint8 side,uint8 saleKind,address target,uint8 howToCall,bytes calldata,bytes replacementPattern,address staticTarget,bytes staticExtradata,address paymentToken,uint256 basePrice,uint256 extra,uint256 listingTime,uint256 expirationTime,uint256 salt)Sig(uint8 v,bytes32 r,bytes32 s)"
-        );
-
-    bytes32 private constant _ORDER_TYPEHASH =
-        keccak256(
-            "Order(address exchange,address maker,address taker,uint256 makerRelayerFee,uint256 takerRelayerFee,uint256 makerProtocolFee,uint256 takerProtocolFee,address feeRecipient,uint8 feeMethod,uint8 side,uint8 saleKind,address target,uint8 howToCall,bytes calldata,bytes replacementPattern,address staticTarget,bytes staticExtradata,address paymentToken,uint256 basePrice,uint256 extra,uint256 listingTime,uint256 expirationTime,uint256 salt)"
-        );
+    // keccak256("Sig(uint8 v,bytes32 r,bytes32 s)")
+    bytes32 internal constant _SIGNATURE_TYPEHASH = 0x7113392a96292fcdb631e265c62d67694adea92a7ecaaab03d2b75203232c507;
+    // keccak256("Params(address nftAsset,uint256 nftTokenId,Order buy,Order sell,Sig sellSig,bytes32 metadata,uint256 nonce)Order(address exchange,address maker,address taker,uint256 makerRelayerFee,uint256 takerRelayerFee,uint256 makerProtocolFee,uint256 takerProtocolFee,address feeRecipient,uint8 feeMethod,uint8 side,uint8 saleKind,address target,uint8 howToCall,bytes calldata,bytes replacementPattern,address staticTarget,bytes staticExtradata,address paymentToken,uint256 basePrice,uint256 extra,uint256 listingTime,uint256 expirationTime,uint256 salt)Sig(uint8 v,bytes32 r,bytes32 s)")
+    bytes32 private constant _PARAMS_TYPEHASH = 0x4e0e083e2049c193063c74a40e0f3feafbfca781e4b06116142f0b9f85de515b;
+    // keccak256("Order(address exchange,address maker,address taker,uint256 makerRelayerFee,uint256 takerRelayerFee,uint256 makerProtocolFee,uint256 takerProtocolFee,address feeRecipient,uint8 feeMethod,uint8 side,uint8 saleKind,address target,uint8 howToCall,bytes calldata,bytes replacementPattern,address staticTarget,bytes staticExtradata,address paymentToken,uint256 basePrice,uint256 extra,uint256 listingTime,uint256 expirationTime,uint256 salt)")
+    bytes32 private constant _ORDER_TYPEHASH = 0xe8278750458fc9dce622c9801945913be199be75b96fd73d1432029651d75b7f;
 
     IOpenseaExchage public openseaExchange;
 
