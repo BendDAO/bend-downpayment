@@ -58,11 +58,12 @@ contract Downpayment is Ownable, IDownpayment {
         bytes memory data,
         Sig memory sig
     ) external payable override onlyWhitelisted(adapter) {
-        // Wrap ETH sent to this contract
-        WETH.deposit{value: msg.value}();
-        // Sent WETH back to sender
-        IERC20(address(WETH)).safeTransferFrom(address(this), msg.sender, msg.value);
-
+        if (msg.value > 0) {
+            // Wrap ETH sent to this contract
+            WETH.deposit{value: msg.value}();
+            // Sent WETH back to sender
+            IERC20(address(WETH)).safeTransferFrom(address(this), msg.sender, msg.value);
+        }
         IAaveLendPool aavePool = IAaveLendPool(aaveAddressesProvider.getLendingPool());
         address[] memory assets = new address[](1);
         assets[0] = address(WETH);
