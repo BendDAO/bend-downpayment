@@ -46,9 +46,6 @@ abstract contract BaseAdapter is
         uint256 nftTokenId;
         uint256 salePrice;
         bytes32 paramsHash;
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
     }
     struct LocalVars {
         address buyer;
@@ -59,6 +56,9 @@ abstract contract BaseAdapter is
         uint256 flashLoanDebt;
         uint256 nonce;
         bytes params;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
     }
 
     // abstract functions
@@ -87,7 +87,10 @@ abstract contract BaseAdapter is
         require(_assets.length == 1 && _amounts.length == 1 && _premiums.length == 1, "Multiple assets not supported");
         require(_assets[0] == address(WETH), "Only WETH borrowing allowed");
         LocalVars memory vars;
-        (vars.params, vars.buyer) = abi.decode(_params, (bytes, address));
+        (vars.params, vars.buyer, vars.v, vars.r, vars.s) = abi.decode(
+            _params,
+            (bytes, address, uint8, bytes32, bytes32)
+        );
 
         vars.flashBorrowedAmount = _amounts[0];
         vars.flashFee = _premiums[0];
@@ -100,7 +103,7 @@ abstract contract BaseAdapter is
             vars.params,
             vars.nonce
         );
-        _checkSig(vars.buyer, baseParams.paramsHash, baseParams.v, baseParams.r, baseParams.s);
+        _checkSig(vars.buyer, baseParams.paramsHash, vars.v, vars.r, vars.s);
 
         require(vars.flashBorrowedAmount <= WETH.balanceOf(address(this)), "Insufficient flash loan");
 

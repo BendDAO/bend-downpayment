@@ -146,7 +146,7 @@ export const signFlashloanParams = (
   ];
 
   const values = [
-    "0x58dacdf275153639e94e6f56d5adaf090af490310fe6c054ade49ae548ee6bee",
+    "0x0c23a5a2214bae03ac403c4d0de66939a151e4ac8d99a90a6e2c7db99c1570c4",
     order.isOrderAsk,
     order.maker,
     order.collection,
@@ -252,15 +252,20 @@ export function createTakerOrder({
   return takerOrder;
 }
 
-export async function createSignedFlashloanBytes(
-  order: SignMakerOrder,
+export interface DataWithSignature {
+  data: string;
+  sig: Signature;
+}
+
+export async function createSignedFlashloanParams(
   signer: SignerWithAddress,
+  order: SignMakerOrder,
   verifyingContract: string,
   nonce: BigNumber
-): Promise<string> {
+): Promise<DataWithSignature> {
   const signedOrder: SignedMakerOrder = await createSignedMakerOrder(order);
 
-  const signature: Signature = await signFlashloanParams(
+  const sig: Signature = await signFlashloanParams(
     order.chainId,
     findPrivateKey(signer.address),
     verifyingContract,
@@ -268,7 +273,7 @@ export async function createSignedFlashloanBytes(
     nonce
   );
   const types =
-    "(bool,address,address,uint256,uint256,uint256,address,address,uint256,uint256,uint256,uint256,bytes,address,bytes,uint8,bytes32,bytes32,uint8,bytes32,bytes32)";
+    "(bool,address,address,uint256,uint256,uint256,address,address,uint256,uint256,uint256,uint256,bytes,address,bytes,uint8,bytes32,bytes32)";
   const values = [
     order.isOrderAsk,
     order.maker,
@@ -288,9 +293,7 @@ export async function createSignedFlashloanBytes(
     signedOrder.v,
     signedOrder.r,
     signedOrder.s,
-    signature.v,
-    signature.r,
-    signature.s,
   ];
-  return defaultAbiCoder.encode([types], [values]);
+  const data = defaultAbiCoder.encode([types], [values]);
+  return { data, sig };
 }

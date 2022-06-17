@@ -5,17 +5,15 @@ import { expect } from "chai";
 import { BigNumber, constants, utils } from "ethers";
 import { Contracts, Env, makeSuite, Snapshots } from "../_setup";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { findPrivateKey } from "../helpers/hardhat-keys";
 import { waitForTx } from "../../tasks/utils/helpers";
 import { assertAlmostEqualTol } from "../helpers/equals";
 import {
   buildAtomicMatchParams,
-  buildFlashloanParams,
   createSellOrder,
-  encodeFlashLoanParams,
+  createSignedFlashloanParams,
   makeBuyOrder,
+  NULL_BLOCK_HASH,
   Order,
-  signFlashLoanParams,
   signOrder,
 } from "../signer/opensea";
 import { getParams, OpenseaExchange } from "../config";
@@ -24,8 +22,6 @@ import { IERC721, IOpenseaExchage, MintableERC721, OpenseaAdapter } from "../../
 import { latest } from "../helpers/block-traveller";
 import { Asset } from "opensea-js/lib/types";
 const { parseEther } = utils;
-
-export const NULL_BLOCK_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) => {
   let buyer: SignerWithAddress;
@@ -91,11 +87,10 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     );
     const expectBuyerWethBalance = (await contracts.weth.balanceOf(buyer.address)).sub(paymentAmount);
 
-    const sellSig = signOrder(findPrivateKey(seller.address), sellOrder, env.chainId, openseaSellerNonce.toNumber());
-
-    const buySig = signFlashLoanParams(
-      findPrivateKey(buyer.address),
+    const sellSig = signOrder(env.chainId, seller, sellOrder, openseaSellerNonce.toNumber());
+    const dataWithSig = createSignedFlashloanParams(
       env.chainId,
+      buyer,
       nonce.toString(),
       adapter.address,
       nft.address,
@@ -105,11 +100,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       sellSig,
       NULL_BLOCK_HASH
     );
-
-    const data = encodeFlashLoanParams(
-      buildFlashloanParams(nft.address, tokenId, buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH)
+    waitForTx(
+      await contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
     );
-    waitForTx(await contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, data));
 
     expect(await nft.ownerOf(tokenId)).to.be.equal(bnft.address);
     expect(await bnft.ownerOf(tokenId)).to.be.equal(buyer.address);
@@ -132,10 +125,10 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
   }
 
   function exceptDownpayment(sellOrder: Order, buyOrder: Order, borrowAmount: BigNumber) {
-    const sellSig = signOrder(findPrivateKey(seller.address), sellOrder, env.chainId, openseaSellerNonce.toNumber());
-    const buySig = signFlashLoanParams(
-      findPrivateKey(buyer.address),
+    const sellSig = signOrder(env.chainId, seller, sellOrder, openseaSellerNonce.toNumber());
+    const dataWithSig = createSignedFlashloanParams(
       env.chainId,
+      buyer,
       nonce.toString(),
       adapter.address,
       nft.address,
@@ -145,11 +138,10 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       sellSig,
       NULL_BLOCK_HASH
     );
-    const data = encodeFlashLoanParams(
-      buildFlashloanParams(nft.address, tokenId, buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH)
-    );
 
-    return expect(contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, data));
+    return expect(
+      contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
+    );
   }
 
   it("opensea match sell order with ETH", async () => {
@@ -162,9 +154,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       merkleValidator,
       env.admin.address
     );
-    const sellSig = signOrder(findPrivateKey(seller.address), sellOrder, env.chainId, openseaSellerNonce.toNumber());
+    const sellSig = signOrder(env.chainId, seller, sellOrder, openseaSellerNonce.toNumber());
     const buyOrder = makeBuyOrder(sellOrder, buyer.address, env.admin.address, sellOrder.listingTime);
-    const buySig = signOrder(findPrivateKey(buyer.address), buyOrder, env.chainId, openseaBuyerNonce.toNumber());
+    const buySig = signOrder(env.chainId, buyer, buyOrder, openseaBuyerNonce.toNumber());
     const params = buildAtomicMatchParams(buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH);
     waitForTx(
       await openseaExchange
@@ -198,9 +190,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       env.admin.address
     );
     sellOrder.paymentToken = contracts.weth.address;
-    const sellSig = signOrder(findPrivateKey(seller.address), sellOrder, env.chainId, openseaSellerNonce.toNumber());
+    const sellSig = signOrder(env.chainId, seller, sellOrder, openseaSellerNonce.toNumber());
     const buyOrder = makeBuyOrder(sellOrder, buyer.address, env.admin.address, sellOrder.listingTime);
-    const buySig = signOrder(findPrivateKey(buyer.address), buyOrder, env.chainId, openseaBuyerNonce.toNumber());
+    const buySig = signOrder(env.chainId, buyer, buyOrder, openseaBuyerNonce.toNumber());
     const params = buildAtomicMatchParams(buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH);
     waitForTx(await contracts.weth.connect(buyer).approve(tokenTransferProxy, constants.MaxUint256));
     waitForTx(

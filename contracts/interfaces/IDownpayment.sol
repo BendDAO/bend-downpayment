@@ -6,6 +6,12 @@ import {ILendPool} from "./ILendPool.sol";
 import {IAaveLendPool} from "./IAaveLendPool.sol";
 
 interface IDownpayment {
+    struct Sig {
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+    }
+
     function WETH() external view returns (IWETH);
 
     function getFee(address adapter) external view returns (uint256);
@@ -27,7 +33,8 @@ interface IDownpayment {
     function buy(
         address adapter,
         uint256 borrowAmount,
-        bytes memory data
+        bytes memory data,
+        Sig memory sig
     ) external payable;
 
     function addAdapter(address adapter) external;

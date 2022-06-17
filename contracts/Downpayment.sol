@@ -55,7 +55,8 @@ contract Downpayment is Ownable, IDownpayment {
     function buy(
         address adapter,
         uint256 borrowAmount,
-        bytes memory data
+        bytes memory data,
+        Sig memory sig
     ) external payable override onlyWhitelisted(adapter) {
         // Wrap ETH sent to this contract
         WETH.deposit{value: msg.value}();
@@ -70,8 +71,8 @@ contract Downpayment is Ownable, IDownpayment {
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
         WETH.deposit();
-        bytes memory dataWithSender = abi.encode(data, msg.sender);
-        aavePool.flashLoan(adapter, assets, amounts, modes, address(0), dataWithSender, 0);
+        bytes memory dataWithSignature = abi.encode(data, msg.sender, sig.v, sig.r, sig.s);
+        aavePool.flashLoan(adapter, assets, amounts, modes, address(0), dataWithSignature, 0);
         _incrementNonce(msg.sender);
     }
 

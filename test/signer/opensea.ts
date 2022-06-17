@@ -10,6 +10,9 @@ import { ERC721v3Schema } from "wyvern-schemas/dist/schemas/ERC721";
 import { ethers, constants, BigNumber } from "ethers";
 import { Asset } from "opensea-js/lib/types";
 import { WyvernProtocol } from "wyvern-js";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { findPrivateKey } from "../helpers/hardhat-keys";
+export const NULL_BLOCK_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 export interface Order {
   exchange: string;
@@ -86,7 +89,7 @@ export const getSignatureFromTypedData = (privateKey: string, typedData: any): E
   return fromRpcSig(signature);
 };
 
-export const signOrder = (privateKey: string, order: Order, chainId: number, nonce: number): ECDSASignature => {
+export const signOrder = (chainId: number, signer: SignerWithAddress, order: Order, nonce: number): ECDSASignature => {
   const message = {
     types: EIP_712_ORDER_TYPES,
     domain: {
@@ -123,7 +126,7 @@ export const signOrder = (privateKey: string, order: Order, chainId: number, non
       nonce,
     },
   };
-  return getSignatureFromTypedData(privateKey, message);
+  return getSignatureFromTypedData(findPrivateKey(signer.address), message);
 };
 
 export const encodeSellCalldata = (asset: Asset, seller: string, target: string) => {
@@ -305,34 +308,40 @@ export const buildAtomicMatchParams = (
     staticExtradataSell: sell.staticExtradata,
     vs: [buySig.v, sellSig.v],
     rssMetadata: [
-      "0x" + buySig.r.toString("hex"),
-      "0x" + buySig.s.toString("hex"),
-      "0x" + sellSig.r.toString("hex"),
-      "0x" + sellSig.s.toString("hex"),
+      bufferToHex(buySig.r),
+      bufferToHex(buySig.s),
+      bufferToHex(sellSig.r),
+      bufferToHex(sellSig.s),
       referrerAddress,
     ],
   };
 };
 
-export const encodeFlashLoanParams = (params: any): string => {
-  return ethers.utils.defaultAbiCoder.encode(
-    ["(address,uint256,address[14],uint256[18],uint8[8],bytes,bytes,bytes,bytes,bytes,bytes,uint8[2],bytes32[5])"],
-    [params]
-  );
-};
+export interface DataWithSignature {
+  data: string;
+  sig: ECDSASignature;
+}
 
-export const buildFlashloanParams = (
+export const createSignedFlashloanParams = (
+  chainId: number,
+  signer: SignerWithAddress,
+  nonce: string,
+  adapter: string,
   nftAsset: string,
-  tokenId: number,
+  nftTokenId: string,
   buy: Order,
-  buySig: ECDSASignature,
   sell: Order,
   sellSig: ECDSASignature,
   referrerAddress: string
-) => {
-  return [
+): DataWithSignature => {
+  const bugSig = {
+    v: 0,
+    r: NULL_BLOCK_HASH,
+    s: NULL_BLOCK_HASH,
+  };
+  const params = [
     nftAsset,
-    tokenId,
+    nftTokenId,
     [
       buy.exchange,
       buy.maker,
@@ -376,16 +385,49 @@ export const buildFlashloanParams = (
     sell.replacementPattern,
     buy.staticExtradata,
     sell.staticExtradata,
-    [buySig.v, sellSig.v],
-    [
-      "0x" + buySig.r.toString("hex"),
-      "0x" + buySig.s.toString("hex"),
-      "0x" + sellSig.r.toString("hex"),
-      "0x" + sellSig.s.toString("hex"),
-      referrerAddress,
-    ],
+    [bugSig.v, sellSig.v],
+    [bugSig.r, bugSig.s, bufferToHex(sellSig.r), bufferToHex(sellSig.s), referrerAddress],
   ];
+  const data = ethers.utils.defaultAbiCoder.encode(
+    ["(address,uint256,address[14],uint256[18],uint8[8],bytes,bytes,bytes,bytes,bytes,bytes,uint8[2],bytes32[5])"],
+    [params]
+  );
+
+  const message = {
+    types: EIP_712_PARAMS_TYPES,
+    domain: {
+      name: EIP_712_ADAPTER_DOMAIN_NAME,
+      version: EIP_712_ADAPTER_DOMAIN_VERSION,
+      chainId,
+      verifyingContract: adapter,
+    },
+    primaryType: "Params",
+    message: {
+      nftAsset,
+      nftTokenId,
+      buy: strOrder(buy),
+      buySig: {
+        v: bugSig.v,
+        r: bugSig.r,
+        s: bugSig.s,
+      },
+      sell: strOrder(sell),
+      sellSig: {
+        v: sellSig.v.toString(),
+        r: bufferToHex(sellSig.r),
+        s: bufferToHex(sellSig.s),
+      },
+      metadata: referrerAddress,
+      nonce,
+    },
+  };
+  const sig = getSignatureFromTypedData(findPrivateKey(signer.address), message);
+  return { data, sig };
 };
+
+export function bufferToHex(buffer: Buffer) {
+  return "0x" + buffer.toString("hex");
+}
 
 export const strOrder = (order: Order) => {
   return {
@@ -413,44 +455,6 @@ export const strOrder = (order: Order) => {
     expirationTime: order.expirationTime.toString(),
     salt: order.salt.toString(),
   };
-};
-
-export const signFlashLoanParams = (
-  privateKey: string,
-  chainId: number,
-  nonce: string,
-  adapter: string,
-  nftAsset: string,
-  nftTokenId: string,
-  buy: Order,
-  sell: Order,
-  sellSig: ECDSASignature,
-  metadata: string
-) => {
-  const message = {
-    types: EIP_712_PARAMS_TYPES,
-    domain: {
-      name: EIP_712_ADAPTER_DOMAIN_NAME,
-      version: EIP_712_ADAPTER_DOMAIN_VERSION,
-      chainId,
-      verifyingContract: adapter,
-    },
-    primaryType: "Params",
-    message: {
-      nftAsset,
-      nftTokenId,
-      buy: strOrder(buy),
-      sell: strOrder(sell),
-      sellSig: {
-        v: sellSig.v.toString(),
-        r: "0x" + sellSig.r.toString("hex"),
-        s: "0x" + sellSig.s.toString("hex"),
-      },
-      metadata,
-      nonce,
-    },
-  };
-  return getSignatureFromTypedData(privateKey, message);
 };
 
 export const EIP_712_PARAMS_TYPES = {
@@ -496,6 +500,10 @@ export const EIP_712_PARAMS_TYPES = {
     {
       name: "buy",
       type: "Order",
+    },
+    {
+      name: "buySig",
+      type: "Sig",
     },
     {
       name: "sell",

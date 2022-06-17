@@ -11,7 +11,7 @@ import { assertAlmostEqualTol } from "../helpers/equals";
 import { BendExchange, getParams } from "../config";
 import { ethers, network } from "hardhat";
 import { BendExchangeAdapter, IAuthorizationManager, IERC721, MintableERC721 } from "../../typechain";
-import { createSignedFlashloanBytes, createSignedMakerOrder, createTakerOrder } from "../signer/bend";
+import { createSignedFlashloanParams, createSignedMakerOrder, createTakerOrder } from "../signer/bend";
 const { parseEther, defaultAbiCoder } = utils;
 const emptyEncodedBytes = defaultAbiCoder.encode([], []);
 
@@ -79,7 +79,8 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
     );
     const expectBuyerWethBalance = (await contracts.weth.balanceOf(buyer.address)).sub(paymentAmount);
 
-    const data = await createSignedFlashloanBytes(
+    const dataWithSig = await createSignedFlashloanParams(
+      buyer,
       {
         isOrderAsk: true,
         maker: seller.address,
@@ -100,11 +101,12 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
         chainId: env.chainId,
         verifyingContract: contracts.bendExchange.address,
       },
-      buyer,
       adapter.address,
       nonce
     );
-    waitForTx(await contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, data));
+    waitForTx(
+      await contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
+    );
 
     expect(await nft.ownerOf(tokenId)).to.be.equal(bnft.address);
     expect(await bnft.ownerOf(tokenId)).to.be.equal(buyer.address);
@@ -169,7 +171,8 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
 
   it("Maker must ask order", async () => {
     const price = parseEther("10");
-    const data = await createSignedFlashloanBytes(
+    const dataWithSig = await createSignedFlashloanParams(
+      buyer,
       {
         isOrderAsk: false,
         maker: seller.address,
@@ -190,17 +193,18 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
         chainId: env.chainId,
         verifyingContract: contracts.bendExchange.address,
       },
-      buyer,
+
       adapter.address,
       nonce
     );
-    await expect(contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, data)).to.revertedWith(
-      "Maker must ask order"
-    );
+    await expect(
+      contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
+    ).to.revertedWith("Maker must ask order");
   });
   it("Currency must be ETH or WETH", async () => {
     const price = parseEther("10");
-    const data = await createSignedFlashloanBytes(
+    const dataWithSig = await createSignedFlashloanParams(
+      buyer,
       {
         isOrderAsk: true,
         maker: seller.address,
@@ -221,18 +225,18 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
         chainId: env.chainId,
         verifyingContract: contracts.bendExchange.address,
       },
-      buyer,
       adapter.address,
       nonce
     );
-    await expect(contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, data)).to.revertedWith(
-      "Currency must be ETH or WETH"
-    );
+    await expect(
+      contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
+    ).to.revertedWith("Currency must be ETH or WETH");
   });
 
   it("Should approve WETH and debtWETH", async () => {
     const price = parseEther("10");
-    const data = await createSignedFlashloanBytes(
+    const dataWithSig = await createSignedFlashloanParams(
+      buyer,
       {
         isOrderAsk: true,
         maker: seller.address,
@@ -253,14 +257,15 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
         chainId: env.chainId,
         verifyingContract: contracts.bendExchange.address,
       },
-      buyer,
       adapter.address,
       nonce
     );
 
     await approveBuyerWeth();
     // no debt weth approvement
-    await expect(contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, data)).to.revertedWith("503");
+    await expect(
+      contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
+    ).to.revertedWith("503");
     await approveBuyerDebtWeth();
     await exceptDownpaymentSuccessed(price, constants.AddressZero, borrowAmount);
   });

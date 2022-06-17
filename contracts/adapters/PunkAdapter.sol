@@ -19,9 +19,6 @@ contract PunkAdapter is BaseAdapter {
     struct Params {
         uint256 punkIndex;
         uint256 buyPrice;
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
     }
 
     function initialize(
@@ -58,10 +55,7 @@ contract PunkAdapter is BaseAdapter {
                 nftAsset: address(wrappedPunks),
                 nftTokenId: _orderParams.punkIndex,
                 salePrice: _sellOffer.minValue,
-                paramsHash: _hashParams(_orderParams, _nonce),
-                v: _orderParams.v,
-                r: _orderParams.r,
-                s: _orderParams.s
+                paramsHash: _hashParams(_orderParams, _nonce)
             });
     }
 

@@ -10,8 +10,8 @@ contract BendExchangeAdapter is BaseAdapter {
     string public constant NAME = "Bend Exchange Downpayment Adapter";
     string public constant VERSION = "1.0";
 
-    //keccak256("Params(bool isOrderAsk,address maker,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params,address interceptor,bytes interceptorExtra,uint8 makerV,bytes32 makerR,bytes32 makerS,uint256 nonce2");
-    bytes32 private constant _PARAMS_TYPEHASH = 0x58dacdf275153639e94e6f56d5adaf090af490310fe6c054ade49ae548ee6bee;
+    //keccak256("Params(bool isOrderAsk,address maker,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params,address interceptor,bytes interceptorExtra,uint8 v,bytes32 r,bytes32 s,uint256 nonce2");
+    bytes32 private constant _PARAMS_TYPEHASH = 0x0c23a5a2214bae03ac403c4d0de66939a151e4ac8d99a90a6e2c7db99c1570c4;
 
     IBendExchange public bendExchange;
 
@@ -33,10 +33,6 @@ contract BendExchangeAdapter is BaseAdapter {
         address interceptor;
         bytes interceptorExtra;
         // maker sig
-        uint8 makerV;
-        bytes32 makerR;
-        bytes32 makerS;
-        // params sig
         uint8 v;
         bytes32 r;
         bytes32 s;
@@ -70,10 +66,7 @@ contract BendExchangeAdapter is BaseAdapter {
                 nftAsset: _orderParams.collection,
                 nftTokenId: _orderParams.tokenId,
                 salePrice: _orderParams.price,
-                paramsHash: _hashParams(_orderParams, _nonce),
-                v: _orderParams.v,
-                r: _orderParams.r,
-                s: _orderParams.s
+                paramsHash: _hashParams(_orderParams, _nonce)
             });
     }
 
@@ -100,9 +93,9 @@ contract BendExchangeAdapter is BaseAdapter {
                         keccak256(_orderParams.params),
                         _orderParams.interceptor,
                         keccak256(_orderParams.interceptorExtra),
-                        _orderParams.makerV,
-                        _orderParams.makerR,
-                        _orderParams.makerS,
+                        _orderParams.v,
+                        _orderParams.r,
+                        _orderParams.s,
                         _nonce
                     )
                 )
@@ -139,9 +132,9 @@ contract BendExchangeAdapter is BaseAdapter {
             makerAsk.params = _orderParams.params;
             makerAsk.interceptor = _orderParams.interceptor;
             makerAsk.interceptorExtra = _orderParams.interceptorExtra;
-            makerAsk.v = _orderParams.makerV;
-            makerAsk.r = _orderParams.makerR;
-            makerAsk.s = _orderParams.makerS;
+            makerAsk.v = _orderParams.v;
+            makerAsk.r = _orderParams.r;
+            makerAsk.s = _orderParams.s;
         }
         bendExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
     }

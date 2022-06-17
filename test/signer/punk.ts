@@ -57,6 +57,11 @@ export const EIP_712_PARAMS_TYPES = {
   ],
 };
 
+export interface DataWithSignature {
+  data: string;
+  sig: ECDSASignature;
+}
+
 export function createSignedFlashloanParams(
   signer: SignerWithAddress,
   chainId: number,
@@ -64,12 +69,10 @@ export function createSignedFlashloanParams(
   adapter: string,
   punkIndex: number,
   buyPrice: BigNumber
-) {
+): DataWithSignature {
   const sig = signFlashLoanParams(findPrivateKey(signer.address), chainId, nonce, adapter, punkIndex, buyPrice);
-  return defaultAbiCoder.encode(
-    ["(uint256,uint256,uint8,bytes32,bytes32)"],
-    [[punkIndex.toString(), buyPrice.toString(), sig.v, sig.r, sig.s]]
-  );
+  const data: string = defaultAbiCoder.encode(["(uint256,uint256)"], [[punkIndex.toString(), buyPrice.toString()]]);
+  return { data, sig };
 }
 
 export const EIP_712_ADAPTER_DOMAIN_NAME = "Punk Downpayment Adapter";

@@ -47,15 +47,18 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
       bendFee
     );
     const expectBuyerWethBalance = (await contracts.weth.balanceOf(buyer.address)).sub(paymentAmount);
-
+    const dataWithSig = createSignedFlashloanParams(
+      buyer,
+      env.chainId,
+      nonce,
+      contracts.punkAdapter.address,
+      tokenId,
+      price
+    );
     waitForTx(
       await contracts.downpayment
         .connect(buyer)
-        .buy(
-          contracts.punkAdapter.address,
-          borrowAmount,
-          createSignedFlashloanParams(buyer, env.chainId, nonce, contracts.punkAdapter.address, tokenId, price)
-        )
+        .buy(contracts.punkAdapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
     );
 
     expect(await contracts.punkMarket.punkIndexToAddress(tokenId)).to.be.equal(contracts.wrappedPunk.address);
@@ -83,14 +86,18 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
   }
 
   function exceptDownpayment(price: BigNumber, borrowAmount: BigNumber) {
+    const dataWithSig = createSignedFlashloanParams(
+      buyer,
+      env.chainId,
+      nonce,
+      contracts.punkAdapter.address,
+      tokenId,
+      price
+    );
     return expect(
       contracts.downpayment
         .connect(buyer)
-        .buy(
-          contracts.punkAdapter.address,
-          borrowAmount,
-          createSignedFlashloanParams(buyer, env.chainId, nonce, contracts.punkAdapter.address, tokenId, price)
-        )
+        .buy(contracts.punkAdapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
     );
   }
 
