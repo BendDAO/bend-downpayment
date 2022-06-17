@@ -11,7 +11,7 @@ import { assertAlmostEqualTol } from "../helpers/equals";
 import { BendExchange, getParams } from "../config";
 import { ethers, network } from "hardhat";
 import { BendExchangeAdapter, IAuthorizationManager, IERC721, MintableERC721 } from "../../typechain";
-import { createSignedFlashloanBytes, createSignedMakerOrder, createTakerOrder } from "../orders/bendExchange";
+import { createSignedFlashloanBytes, createSignedMakerOrder, createTakerOrder } from "../signer/bend";
 const { parseEther, defaultAbiCoder } = utils;
 const emptyEncodedBytes = defaultAbiCoder.encode([], []);
 

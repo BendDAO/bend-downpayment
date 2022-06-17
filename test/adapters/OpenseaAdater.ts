@@ -17,7 +17,7 @@ import {
   Order,
   signFlashLoanParams,
   signOrder,
-} from "../orders/opensea";
+} from "../signer/opensea";
 import { getParams, OpenseaExchange } from "../config";
 import { network } from "hardhat";
 import { IERC721, IOpenseaExchage, MintableERC721, OpenseaAdapter } from "../../typechain";
