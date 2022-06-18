@@ -22,10 +22,22 @@ import {
   IOpenseaExchage,
   INFTOracle,
   IBendExchange,
+  ILooksRareTransferSelectorNFT,
 } from "../typechain";
-import { getParams, WETH, PunkMarket, OpenseaExchange, BendExchange, BendProtocol, BAYC } from "./config";
+import {
+  getParams,
+  WETH,
+  PunkMarket,
+  OpenseaExchange,
+  BendExchange,
+  BendProtocol,
+  BAYC,
+  LooksRareExchange,
+} from "./config";
 import { waitForTx } from "../tasks/utils/helpers";
 import { constants } from "ethers";
+import { ILooksRareExchange } from "../typechain/ILooksRareExchange";
+import { LooksRareExchangeAdapter } from "../typechain/LooksRareExchangeAdapter";
 
 export interface Env {
   initialized: boolean;
@@ -37,25 +49,41 @@ export interface Env {
 
 export interface Contracts {
   initialized: boolean;
+  // weth
   weth: IWETH;
   bWETH: IBToken;
   debtWETH: IDebtToken;
+
+  // nft
   bayc: MintableERC721;
   bBAYC: IERC721;
   bWPUNK: IERC721;
-  punkMarket: ICryptoPunksMarket;
   wrappedPunk: IWrappedPunks;
-  punkAdapter: PunkAdapter;
-  openseaAdapter: OpenseaAdapter;
+
+  // exchanges
+  looksRareExchange: ILooksRareExchange;
+  transferNFT: ILooksRareTransferSelectorNFT;
+  punkMarket: ICryptoPunksMarket;
   openseaExchange: IOpenseaExchage;
   bendExchange: IBendExchange;
   proxyRegistry: IOpenseaRegistry;
-  bendExchangeAdapter: BendExchangeAdapter;
   authorizationManager: IAuthorizationManager;
+
+  // adapters
+  punkAdapter: PunkAdapter;
+  openseaAdapter: OpenseaAdapter;
+  bendExchangeAdapter: BendExchangeAdapter;
+  looksRareExchangeAdapter: LooksRareExchangeAdapter;
+
+  // aave
   aaveLendPool: IAaveLendPool;
+
+  // bend protocol
   bendLendPool: ILendPool;
   nftOracle: INFTOracle;
   bendCollector: IBendCollector;
+
+  //
   downpayment: Downpayment;
 }
 
@@ -65,19 +93,29 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
   env.admin = env.accounts[0];
   env.chainId = (await ethers.provider.getNetwork()).chainId;
 
+  // init eth
   const users = env.accounts.slice(1, 10);
   for (const user of users) {
     // Each user gets 30 WETH
     waitForTx(await contracts.weth.connect(user).deposit({ value: parseEther("100") }));
   }
 
+  // init aave lend pool
   waitForTx(await contracts.weth.connect(env.admin).deposit({ value: parseEther("1000") }));
   waitForTx(await contracts.weth.connect(env.admin).transfer(contracts.aaveLendPool.address, parseEther("800")));
+
+  // add adapter and fees
+  waitForTx(await contracts.downpayment.addAdapter(contracts.punkAdapter.address));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.openseaAdapter.address));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.bendExchangeAdapter.address));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.looksRareExchangeAdapter.address));
 
   waitForTx(await contracts.downpayment.updateFee(contracts.punkAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.openseaAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.bendExchangeAdapter.address, env.fee));
+  waitForTx(await contracts.downpayment.updateFee(contracts.looksRareExchangeAdapter.address, env.fee));
 
+  // add reserve balance for bend
   waitForTx(await contracts.weth.connect(env.admin).approve(contracts.bendLendPool.address, constants.MaxUint256));
   waitForTx(
     await contracts.bendLendPool
@@ -89,8 +127,39 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
 export async function setupContracts(): Promise<Contracts> {
   const networkName = network.name;
 
-  const bayc = await ethers.getContractAt("MintableERC721", getParams(BAYC, networkName));
+  // config
+  const bendProtocolParams = getParams(BendProtocol, networkName);
+  const punkMarketParams = getParams(PunkMarket, networkName);
+  const bendExchangeParams = getParams(BendExchange, networkName);
+  const looksRareExchangeParams = getParams(LooksRareExchange, networkName);
 
+  // weth
+  const weth = await ethers.getContractAt("IWETH", getParams(WETH, networkName));
+  const debtWETH = await ethers.getContractAt("IDebtToken", bendProtocolParams[2]);
+  const bWETH = await ethers.getContractAt("IBToken", bendProtocolParams[3]);
+
+  // nft
+  const bayc = await ethers.getContractAt("MintableERC721", getParams(BAYC, networkName));
+  const bWPUNK = await ethers.getContractAt("IERC721", bendProtocolParams[4]);
+  const bBAYC = await ethers.getContractAt("IERC721", bendProtocolParams[5]);
+  const punkMarket = await ethers.getContractAt("ICryptoPunksMarket", punkMarketParams[0]);
+  const wrappedPunk = await ethers.getContractAt("IWrappedPunks", punkMarketParams[1]);
+
+  // exchanges
+  const openseaExchange = await ethers.getContractAt("IOpenseaExchage", getParams(OpenseaExchange, networkName)[0]);
+  const proxyRegistry = await ethers.getContractAt("IOpenseaRegistry", await openseaExchange.registry());
+  const bendExchange = await ethers.getContractAt("IBendExchange", bendExchangeParams[0]);
+  const authorizationManager = await ethers.getContractAt(
+    "IAuthorizationManager",
+    await bendExchange.authorizationManager()
+  );
+  const looksRareExchange = await ethers.getContractAt("ILooksRareExchange", looksRareExchangeParams[0]);
+  const transferNFT = await ethers.getContractAt(
+    "ILooksRareTransferSelectorNFT",
+    await looksRareExchange.transferSelectorNFT()
+  );
+
+  // aave
   // we mock aave due to no rinkeby addresses
   const MockAaveLendPoolAddressesProvider = await ethers.getContractFactory("MockAaveLendPoolAddressesProvider");
   const mockAaveLendPoolAddressesProvider = await MockAaveLendPoolAddressesProvider.deploy();
@@ -101,18 +170,12 @@ export async function setupContracts(): Promise<Contracts> {
   );
 
   // bend protocol
-  const bendProtocolParams = getParams(BendProtocol, networkName);
   const bendAddressesProvider = await ethers.getContractAt("ILendPoolAddressesProvider", bendProtocolParams[0]);
   const bendLendPool = await ethers.getContractAt("ILendPool", await bendAddressesProvider.getLendPool());
   const bendCollector = await ethers.getContractAt("IBendCollector", bendProtocolParams[1]);
-  const debtWETH = await ethers.getContractAt("IDebtToken", bendProtocolParams[2]);
-  const bWETH = await ethers.getContractAt("IBToken", bendProtocolParams[3]);
-  const bWPUNK = await ethers.getContractAt("IERC721", bendProtocolParams[4]);
-  const bBAYC = await ethers.getContractAt("IERC721", bendProtocolParams[5]);
   const nftOracle = await ethers.getContractAt("INFTOracle", bendProtocolParams[6]);
 
-  const weth = await ethers.getContractAt("IWETH", getParams(WETH, networkName));
-
+  // downpayment
   const Downpayment = await ethers.getContractFactory("Downpayment");
   const downpayment = await Downpayment.deploy(
     mockAaveLendPoolAddressesProvider.address,
@@ -122,44 +185,34 @@ export async function setupContracts(): Promise<Contracts> {
   );
   await downpayment.deployed();
 
-  // punk
-  const punkMarketParams = getParams(PunkMarket, networkName);
-  const punkMarket = await ethers.getContractAt("ICryptoPunksMarket", punkMarketParams[0]);
-  const wrappedPunk = await ethers.getContractAt("IWrappedPunks", punkMarketParams[1]);
+  // adapters
+  const OpenseaAdapter = await ethers.getContractFactory("OpenseaAdapter");
+  const openseaAdapter = await OpenseaAdapter.deploy();
+  await openseaAdapter.deployed();
+  await openseaAdapter.initialize(downpayment.address, openseaExchange.address);
 
   const PunkAdapter = await ethers.getContractFactory("PunkAdapter");
   const punkAdapter = await PunkAdapter.deploy();
   await punkAdapter.deployed();
   await punkAdapter.initialize(downpayment.address, punkMarket.address, punkMarketParams[1]);
 
-  // opensea
-  const openseaExchange = await ethers.getContractAt("IOpenseaExchage", getParams(OpenseaExchange, networkName)[0]);
-  const proxyRegistry = await ethers.getContractAt("IOpenseaRegistry", await openseaExchange.registry());
-  const OpenseaAdapter = await ethers.getContractFactory("OpenseaAdapter");
-  const openseaAdapter = await OpenseaAdapter.deploy();
-  await openseaAdapter.deployed();
-  await openseaAdapter.initialize(downpayment.address, openseaExchange.address);
-
-  // bend
-  const bendExchangeParams = getParams(BendExchange, networkName);
-  const bendExchange = await ethers.getContractAt("IBendExchange", bendExchangeParams[0]);
-  const authorizationManager = await ethers.getContractAt(
-    "IAuthorizationManager",
-    await bendExchange.authorizationManager()
-  );
   const BendExchangeAdapter = await ethers.getContractFactory("BendExchangeAdapter");
   const bendExchangeAdapter = await BendExchangeAdapter.deploy();
   await bendExchangeAdapter.deployed();
   await bendExchangeAdapter.initialize(downpayment.address, bendExchange.address);
 
-  await downpayment.addAdapter(punkAdapter.address);
-  await downpayment.addAdapter(openseaAdapter.address);
-  await downpayment.addAdapter(bendExchangeAdapter.address);
+  const LooksRareExchangeAdapter = await ethers.getContractFactory("LooksRareExchangeAdapter");
+  const looksRareExchangeAdapter = await LooksRareExchangeAdapter.deploy();
+  await looksRareExchangeAdapter.deployed();
+  await looksRareExchangeAdapter.initialize(downpayment.address, looksRareExchange.address);
 
   /** Return contracts
    */
   return {
     initialized: true,
+    transferNFT,
+    looksRareExchangeAdapter,
+    looksRareExchange,
     weth,
     bWETH,
     debtWETH,
