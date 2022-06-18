@@ -33,8 +33,8 @@ interface IDownpayment {
     function buy(
         address adapter,
         uint256 borrowAmount,
-        bytes memory data,
-        Sig memory sig
+        bytes calldata data,
+        Sig calldata sig
     ) external payable;
 
     function addAdapter(address adapter) external;

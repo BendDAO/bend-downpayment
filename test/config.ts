@@ -34,7 +34,7 @@ export const NETWORKS_RPC_URL: Params<string> = {
 };
 
 export const WETH: Params<string> = {
-  [Network.rinkeby]: "0xb49dBe8e2A5a140b3b810c33ac2ba4907A3CA95e",
+  [Network.rinkeby]: "0xc778417e063141139fce010982780140aa0cd5ab",
   [Network.main]: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 };
 
@@ -61,8 +61,16 @@ export const OpenseaExchange: Params<string[]> = {
 
 export const BendExchange: Params<string[]> = {
   [Network.rinkeby]: [
-    "0x4F8A1d36C7B8386a659410e1C9839fa3c2339BE5", // BendExchange
-    "0x43a851160dE8b03D633ceae07321b5e236aBaBbB", // StrategyStandardSaleForFixedPrice
+    "0xFeCfD28A068BcB9AAeB1c830870093B24750B076", // BendExchange
+    "0xC2A7b92C31e8ADdA71e8AB8bfe23955053D508aB", // StrategyStandardSaleForFixedPrice
+  ],
+  [Network.main]: [],
+};
+
+export const LooksRareExchange: Params<string[]> = {
+  [Network.rinkeby]: [
+    "0x1AA777972073Ff66DCFDeD85749bDD555C0665dA", // LooksRareExchange
+    "0x732319A3590E4fA838C111826f9584a9A2fDEa1a", // StrategyStandardSaleForFixedPrice
   ],
   [Network.main]: [],
 };
@@ -71,8 +79,8 @@ export const BendProtocol: Params<string[]> = {
   [Network.rinkeby]: [
     "0xE55870eBB007a50B0dfAbAdB1a21e4bFcee5299b", // addresses provider
     "0x7A02EE743Aadca63d60945971B7eD12c7f26b6d2", // bend collector
-    "0x6D9BcB420F217c4e1c3F1b8753C47b1E8A85eA1E", // debtWETH
-    "0xeb7f1c5548faff6492b298082691a633fb2c5f4d", // bWETH
+    "0x054fc05030a65bb30671f28ea5d668f56e4970d7", // debtWETH
+    "0x162f6ef816c8b03193c50852fffb570d97ceea2f", // bWETH
     "0x8894215794f196018324d191a03ef987A617eb01", // bWPUNK
     "0x7fE857748dc8e335E3E94cAFE27a63d1F573dF45", // bBAYC
     "0x04af5eF6100E1025560Be50FF244CB31f60d08c2", // NFTOracle

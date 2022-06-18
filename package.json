@@ -28,8 +28,9 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
+    "typechain": "TS_NODE_TRANSPILE_ONLY=true hardhat typechain",
     "clean": "hardhat clean",
-    "compile": "hardhat compile",
+    "compile": "TS_NODE_TRANSPILE_ONLY=true hardhat compile",
     "compile:force": "hardhat compile --force",
     "format:check": "prettier --check '**/*.{js,jsx,ts,tsx,sol,json,yaml,md}'",
     "format:write": "prettier --write '**/*.{js,jsx,ts,tsx,json,yaml,md}'",
@@ -39,7 +40,7 @@
     "prepare": "husky install",
     "test": "hardhat test",
     "test:gas": "REPORT_GAS=true hardhat test",
-    "test:coverage": "hardhat coverage && hardhat compile --force",
+    "test:coverage": "TS_NODE_TRANSPILE_ONLY=true hardhat coverage && hardhat compile --force",
     "release": "release-it"
   },
   "devDependencies": {

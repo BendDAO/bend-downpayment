@@ -55,8 +55,8 @@ contract Downpayment is Ownable, IDownpayment {
     function buy(
         address adapter,
         uint256 borrowAmount,
-        bytes memory data,
-        Sig memory sig
+        bytes calldata data,
+        Sig calldata sig
     ) external payable override onlyWhitelisted(adapter) {
         if (msg.value > 0) {
             // Wrap ETH sent to this contract

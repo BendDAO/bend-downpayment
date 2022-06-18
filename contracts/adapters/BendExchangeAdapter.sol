@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.9;
 
-import {IBendExchange, OrderTypes} from "../interfaces/IBendExchange.sol";
+import {IBendExchange} from "../interfaces/IBendExchange.sol";
 import {IAuthorizationManager} from "../interfaces/IAuthorizationManager.sol";
 
 import {BaseAdapter} from "./BaseAdapter.sol";
@@ -104,7 +104,7 @@ contract BendExchangeAdapter is BaseAdapter {
 
     function _exchange(BaseParams memory, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
-        OrderTypes.TakerOrder memory takerBid;
+        IBendExchange.TakerOrder memory takerBid;
         {
             takerBid.isOrderAsk = false;
             takerBid.taker = address(this);
@@ -115,7 +115,7 @@ contract BendExchangeAdapter is BaseAdapter {
             takerBid.interceptor = address(0);
             takerBid.interceptorExtra = new bytes(0);
         }
-        OrderTypes.MakerOrder memory makerAsk;
+        IBendExchange.MakerOrder memory makerAsk;
         {
             makerAsk.isOrderAsk = _orderParams.isOrderAsk;
             makerAsk.maker = _orderParams.maker;

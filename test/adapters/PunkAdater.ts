@@ -23,7 +23,6 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     sellPrice = parseEther("10");
     waitForTx(await contracts.punkMarket.connect(seller).getPunk(tokenId));
     waitForTx(await contracts.punkMarket.connect(seller).offerPunkForSale(tokenId, sellPrice));
-
     const nftCollateralData = await contracts.bendLendPool.getNftCollateralData(
       contracts.wrappedPunk.address,
       contracts.weth.address
