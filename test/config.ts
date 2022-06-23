@@ -33,6 +33,16 @@ export const NETWORKS_RPC_URL: Params<string> = {
     : `https://mainnet.infura.io/v3/${INFURA_KEY}`,
 };
 
+export const FeeCollector: Params<string> = {
+  [Network.rinkeby]: "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A",
+  [Network.main]: "",
+};
+
+export const AAVE: Params<string> = {
+  [Network.rinkeby]: "0xF89Ac2d8885eaB06a4F16B1c769a011FCb09061A", // address provider
+  [Network.main]: "",
+};
+
 export const WETH: Params<string> = {
   [Network.rinkeby]: "0xc778417e063141139fce010982780140aa0cd5ab",
   [Network.main]: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",

@@ -13,7 +13,7 @@ const fatalErrors = [
   `The constructor for`,
 ];
 
-const okErrors = [`Contract source code already verified`];
+const okErrors = [`Contract source code already verified`, `Already Verified`];
 
 const unableVerifyError = "Fail - Unable to verify";
 

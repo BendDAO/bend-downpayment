@@ -5,7 +5,6 @@ import {EIP712Upgradeable, ECDSAUpgradeable} from "@openzeppelin/contracts-upgra
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 
@@ -36,7 +35,7 @@ abstract contract BaseAdapter is
         __Ownable_init();
         __Pausable_init();
         __ReentrancyGuard_init();
-        __EIP712_init_unchained(_name, _version);
+        __EIP712_init(_name, _version);
         downpayment = IDownpayment(_downpayment);
         downpayment.WETH().approve(address(downpayment.getBendLendPool()), type(uint256).max);
     }

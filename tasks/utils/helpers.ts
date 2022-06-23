@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Contract, ContractReceipt, ContractTransaction, Signer } from "ethers";
+import { constants, Contract, ContractReceipt, ContractTransaction, Signer } from "ethers";
 import { verifyEtherscanContract } from "./verification";
 import { DRE, DB } from "./DRE";
 
@@ -53,6 +53,14 @@ export const deployContract = async (contractName: string, args: any[], verify?:
   return instance;
 };
 
+export const deployProxyContract = async (contractName: string, args: any[], verify?: boolean): Promise<Contract> => {
+  console.log("deploy", contractName);
+  const factory = await DRE.ethers.getContractFactory(contractName);
+  const instance = await DRE.upgrades.deployProxy(factory, args);
+  await withSaveAndVerify(instance, contractName, args, verify);
+  return instance;
+};
+
 export const withSaveAndVerify = async (
   instance: Contract,
   id: string,
@@ -62,7 +70,12 @@ export const withSaveAndVerify = async (
   await waitForTx(instance.deployTransaction);
   await registerContractInJsonDB(id, instance);
   if (verify) {
-    await verifyEtherscanContract(instance.address, args);
+    const impl = await DRE.upgrades.erc1967.getImplementationAddress(instance.address);
+    if (impl !== constants.AddressZero) {
+      await verifyEtherscanContract(impl, []);
+    } else {
+      await verifyEtherscanContract(instance.address, args);
+    }
   }
   return instance;
 };
