@@ -71,7 +71,6 @@ contract Downpayment is Ownable, IDownpayment {
         amounts[0] = borrowAmount;
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
-        WETH.deposit();
         bytes memory dataWithSignature = abi.encode(data, msg.sender, sig.v, sig.r, sig.s);
         aavePool.flashLoan(adapter, assets, amounts, modes, address(0), dataWithSignature, 0);
         _incrementNonce(msg.sender);

@@ -97,26 +97,26 @@ contract OpenseaAdapter is BaseAdapter {
         address _WETH = address(downpayment.WETH());
 
         // Check order params
-        require(address(this) == _orderParams.addrs[1], "Buyer must be this contract");
+        require(address(this) == _orderParams.addrs[1], "Adapter: buyer address error");
         vars.buyerpaymentToken = _orderParams.addrs[6];
         vars.sellerpaymentToken = _orderParams.addrs[13];
         require(
             address(0) == vars.buyerpaymentToken || _WETH == vars.buyerpaymentToken,
-            "Buyer payment token should be ETH or WETH"
+            "Adapter: buyer payment token should be ETH or WETH"
         );
         require(
             address(0) == vars.sellerpaymentToken || _WETH == vars.buyerpaymentToken,
-            "Seller payment token should be ETH or WETH"
+            "Adapter: seller payment token should be ETH or WETH"
         );
         require(
             _orderParams.feeMethodsSidesKindsHowToCalls[2] == _orderParams.feeMethodsSidesKindsHowToCalls[6] &&
                 0 == _orderParams.feeMethodsSidesKindsHowToCalls[2],
-            "Order must be fixed price sale kind"
+            "Adapter: order must be fixed price sale kind"
         );
 
         vars.buyPrice = _orderParams.uints[4];
         vars.sellPrice = _orderParams.uints[13];
-        require(vars.buyPrice == vars.sellPrice, "Order price must be same");
+        require(vars.buyPrice == vars.sellPrice, "Adapter: order price must be same");
 
         return
             BaseParams({

@@ -7,6 +7,7 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
+import {IERC20Upgradeable, SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import {IAaveFlashLoanReceiver} from "../interfaces/IAaveFlashLoanReceiver.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
@@ -22,6 +23,7 @@ abstract contract BaseAdapter is
     EIP712Upgradeable,
     ERC721HolderUpgradeable
 {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     using PercentageMath for uint256;
     event FeeCharged(address indexed payer, address indexed adapter, uint256 fee);
     IDownpayment public downpayment;
@@ -79,12 +81,15 @@ abstract contract BaseAdapter is
         address _initiator,
         bytes calldata _params
     ) external override nonReentrant whenNotPaused returns (bool) {
-        require(msg.sender == address(downpayment.getAaveLendPool()), "Caller must be aave lending pool");
-        require(_initiator == address(downpayment), "Flashloan initiator must be downpayment");
+        require(msg.sender == address(downpayment.getAaveLendPool()), "Adapter: caller must be aave lending pool");
+        require(_initiator == address(downpayment), "Adapter: flashloan initiator must be downpayment");
         IWETH WETH = downpayment.WETH();
         uint256 fee = downpayment.getFee(address(this));
-        require(_assets.length == 1 && _amounts.length == 1 && _premiums.length == 1, "Multiple assets not supported");
-        require(_assets[0] == address(WETH), "Only WETH borrowing allowed");
+        require(
+            _assets.length == 1 && _amounts.length == 1 && _premiums.length == 1,
+            "Adapter: multiple assets not supported"
+        );
+        require(_assets[0] == address(WETH), "Adapter: only WETH borrowing allowed");
         LocalVars memory vars;
         (vars.params, vars.buyer, vars.v, vars.r, vars.s) = abi.decode(
             _params,
@@ -104,7 +109,7 @@ abstract contract BaseAdapter is
         );
         _checkSig(vars.buyer, baseParams.paramsHash, vars.v, vars.r, vars.s);
 
-        require(vars.flashBorrowedAmount <= WETH.balanceOf(address(this)), "Insufficient flash loan");
+        require(vars.flashBorrowedAmount <= WETH.balanceOf(address(this)), "Adapter: insufficient flash loan");
 
         // Check if the flash loan can be paid off and payment sufficient
         vars.bendFeeAmount = baseParams.salePrice.percentMul(fee);
@@ -113,15 +118,15 @@ abstract contract BaseAdapter is
         require(
             WETH.balanceOf(vars.buyer) >= vars.buyerPayment &&
                 WETH.allowance(vars.buyer, address(this)) >= vars.buyerPayment,
-            "Insufficient balance"
+            "Adapter: WETH Insufficient"
         );
 
         vars.flashLoanDebt = vars.flashBorrowedAmount + vars.flashFee;
 
         // Prepare ETH, need buyer approve WETH to this contract
-        require(WETH.transferFrom(vars.buyer, address(this), vars.buyerPayment), "WETH transfer failed");
+        IERC20Upgradeable(address(WETH)).safeTransferFrom(vars.buyer, address(this), vars.buyerPayment);
 
-        // Do opensea exchange
+        // Do exchange
         _exchange(baseParams, vars.params);
 
         _beforeBorrowWETH(baseParams.nftAsset, baseParams.nftTokenId, vars.buyer, vars.flashBorrowedAmount);
@@ -175,7 +180,7 @@ abstract contract BaseAdapter is
         ILendPool _pool = downpayment.getBendLendPool();
         address _reserveToken = address(downpayment.WETH());
         IERC721Upgradeable _nftERC721 = IERC721Upgradeable(_nftAsset);
-        require(_nftERC721.ownerOf(_nftTokenId) == address(this), "Not own nft");
+        require(_nftERC721.ownerOf(_nftTokenId) == address(this), "Adapter: not own nft");
         _nftERC721.approve(address(_pool), _nftTokenId);
         _pool.borrow(_reserveToken, _amount, _nftAsset, _nftTokenId, _onBehalfOf, 0);
     }
@@ -202,13 +207,13 @@ abstract contract BaseAdapter is
     ) internal view {
         bytes32 hash = _hashTypedDataV4(paramsHash);
         address signer = ECDSAUpgradeable.recover(hash, v, r, s);
-        require(signer == _signer, "Invalid signature");
+        require(signer == _signer, "Adapter: invalid signature");
     }
 
     /**
      * @dev Only WETH contract is allowed to transfer ETH here. Prevent other addresses to send Ether to this contract.
      */
     receive() external payable {
-        require(msg.sender == address(downpayment.WETH()), "Receive not allowed");
+        require(msg.sender == address(downpayment.WETH()), "Adapter: receive not allowed");
     }
 }

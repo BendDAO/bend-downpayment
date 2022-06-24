@@ -101,11 +101,11 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
   }
 
   it("Order price must be same", async () => {
-    await exceptDownpayment(parseEther("9.9"), borrowAmount).to.revertedWith("Order price must be same");
+    await exceptDownpayment(parseEther("9.9"), borrowAmount).to.revertedWith("Adapter: order price must be same");
   });
 
-  it("Insufficient balance", async () => {
-    await exceptDownpayment(sellPrice, borrowAmount).to.revertedWith("Insufficient balance");
+  it("WETH Insufficient", async () => {
+    await exceptDownpayment(sellPrice, borrowAmount).to.revertedWith("Adapter: WETH Insufficient");
   });
 
   it("Should approve WETH and debtWETH", async () => {

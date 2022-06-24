@@ -185,7 +185,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
     );
     await expect(
       contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
-    ).to.revertedWith("Maker must ask order");
+    ).to.revertedWith("Adapter: maker must ask order");
   });
   it("Currency must be WETH", async () => {
     const price = parseEther("10");
@@ -214,7 +214,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
     );
     await expect(
       contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
-    ).to.revertedWith("Currency must be WETH");
+    ).to.revertedWith("Adapter: currency must be WETH");
   });
 
   it("Should approve WETH and debtWETH", async () => {

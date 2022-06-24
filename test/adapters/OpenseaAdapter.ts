@@ -215,7 +215,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     expect(await nft.ownerOf(tokenId)).to.be.equal(buyer.address);
   });
 
-  it("Buyer must be this contract", async () => {
+  it("Buyer address error", async () => {
     const sellOrder = createSellOrder(
       openseaExchange.address,
       nftAsset,
@@ -226,7 +226,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       env.admin.address
     );
     const buyOrder = makeBuyOrder(sellOrder, env.accounts[3].address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Buyer must be this contract");
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Adapter: buyer address error");
   });
   it("Buyer payment token should be ETH or WETH", async () => {
     const sellOrder = createSellOrder(
@@ -241,7 +241,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     sellOrder.paymentToken = "0x0000000000000000000000000000000000000001";
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
     await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith(
-      "Buyer payment token should be ETH or WETH"
+      "Adapter: buyer payment token should be ETH or WETH"
     );
   });
   it("Order must be fixed price sale kind", async () => {
@@ -256,7 +256,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     );
     sellOrder.saleKind = 1;
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Order must be fixed price sale kind");
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith(
+      "Adapter: order must be fixed price sale kind"
+    );
   });
   it("Order price must be same", async () => {
     const sellOrder = createSellOrder(
@@ -270,9 +272,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     );
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
     buyOrder.basePrice = buyOrder.basePrice.sub(parseEther("1"));
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Order price must be same");
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Adapter: order price must be same");
   });
-  it("Insufficient balance", async () => {
+  it("WETH Insufficient", async () => {
     const sellOrder = createSellOrder(
       openseaExchange.address,
       nftAsset,
@@ -283,7 +285,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       env.admin.address
     );
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Insufficient balance");
+    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Adapter: WETH Insufficient");
   });
   it("Should approve WETH and debtWETH", async () => {
     const sellOrder = createSellOrder(

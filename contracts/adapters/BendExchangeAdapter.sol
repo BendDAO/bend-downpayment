@@ -56,10 +56,10 @@ contract BendExchangeAdapter is BaseAdapter {
         Params memory _orderParams = _decodeParams(_params);
 
         // Check order params
-        require(_orderParams.isOrderAsk, "Maker must ask order");
+        require(_orderParams.isOrderAsk, "Adapter: maker must ask order");
         require(
             _orderParams.currency == address(downpayment.WETH()) || _orderParams.currency == address(0),
-            "Currency must be ETH or WETH"
+            "Adapter: currency must be ETH or WETH"
         );
         return
             BaseParams({

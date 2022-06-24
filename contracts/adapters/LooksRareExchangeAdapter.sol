@@ -52,8 +52,8 @@ contract LooksRareExchangeAdapter is BaseAdapter {
         Params memory _orderParams = _decodeParams(_params);
 
         // Check order params
-        require(_orderParams.isOrderAsk, "Maker must ask order");
-        require(_orderParams.currency == address(downpayment.WETH()), "Currency must be WETH");
+        require(_orderParams.isOrderAsk, "Adapter: maker must ask order");
+        require(_orderParams.currency == address(downpayment.WETH()), "Adapter: currency must be WETH");
         return
             BaseParams({
                 nftAsset: _orderParams.collection,

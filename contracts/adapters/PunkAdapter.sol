@@ -46,9 +46,9 @@ contract PunkAdapter is BaseAdapter {
         ICryptoPunksMarket.Offer memory _sellOffer = punksMarket.punksOfferedForSale(_orderParams.punkIndex);
 
         // Check order params
-        require(_sellOffer.isForSale, "Punk not actually for sale");
-        require(_orderParams.buyPrice == _sellOffer.minValue, "Order price must be same");
-        require(_sellOffer.onlySellTo == address(0), "Order must sell to zero address");
+        require(_sellOffer.isForSale, "Adapter: punk not actually for sale");
+        require(_orderParams.buyPrice == _sellOffer.minValue, "Adapter: order price must be same");
+        require(_sellOffer.onlySellTo == address(0), "Adapter: order must sell to zero address");
 
         return
             BaseParams({
@@ -80,8 +80,8 @@ contract PunkAdapter is BaseAdapter {
         _onBehalfOf;
         _amount;
 
-        require(address(wrappedPunks) == _nftAsset, "Not wpunks contract");
-        require(punksMarket.punkIndexToAddress(_nftTokenId) == address(this), "Not owner of punkIndex");
+        require(address(wrappedPunks) == _nftAsset, "Adapter: not wpunks");
+        require(punksMarket.punkIndexToAddress(_nftTokenId) == address(this), "Adapter: not owner of punkIndex");
         punksMarket.transferPunk(wpunkProxy, _nftTokenId);
         wrappedPunks.mint(_nftTokenId);
     }

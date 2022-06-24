@@ -199,7 +199,7 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
     );
     await expect(
       contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
-    ).to.revertedWith("Maker must ask order");
+    ).to.revertedWith("Adapter: maker must ask order");
   });
   it("Currency must be ETH or WETH", async () => {
     const price = parseEther("10");
@@ -230,7 +230,7 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
     );
     await expect(
       contracts.downpayment.connect(buyer).buy(adapter.address, borrowAmount, dataWithSig.data, dataWithSig.sig)
-    ).to.revertedWith("Currency must be ETH or WETH");
+    ).to.revertedWith("Adapter: currency must be ETH or WETH");
   });
 
   it("Should approve WETH and debtWETH", async () => {
