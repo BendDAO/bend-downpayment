@@ -87,10 +87,10 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     );
     const expectBuyerWethBalance = (await contracts.weth.balanceOf(buyer.address)).sub(paymentAmount);
 
-    const sellSig = signOrder(env.chainId, seller, sellOrder, openseaSellerNonce.toNumber());
-    const dataWithSig = createSignedFlashloanParams(
+    const sellSig = await signOrder(env.chainId, seller.address, sellOrder, openseaSellerNonce.toNumber());
+    const dataWithSig = await createSignedFlashloanParams(
       env.chainId,
-      buyer,
+      buyer.address,
       nonce.toString(),
       adapter.address,
       nft.address,
@@ -124,11 +124,11 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     await contracts.debtWETH.connect(buyer).approveDelegation(adapter.address, constants.MaxUint256);
   }
 
-  function exceptDownpayment(sellOrder: Order, buyOrder: Order, borrowAmount: BigNumber) {
-    const sellSig = signOrder(env.chainId, seller, sellOrder, openseaSellerNonce.toNumber());
-    const dataWithSig = createSignedFlashloanParams(
+  async function exceptDownpayment(sellOrder: Order, buyOrder: Order, borrowAmount: BigNumber) {
+    const sellSig = await signOrder(env.chainId, seller.address, sellOrder, openseaSellerNonce.toNumber());
+    const dataWithSig = await createSignedFlashloanParams(
       env.chainId,
-      buyer,
+      buyer.address,
       nonce.toString(),
       adapter.address,
       nft.address,
@@ -154,9 +154,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       merkleValidator,
       env.admin.address
     );
-    const sellSig = signOrder(env.chainId, seller, sellOrder, openseaSellerNonce.toNumber());
+    const sellSig = await signOrder(env.chainId, seller.address, sellOrder, openseaSellerNonce.toNumber());
     const buyOrder = makeBuyOrder(sellOrder, buyer.address, env.admin.address, sellOrder.listingTime);
-    const buySig = signOrder(env.chainId, buyer, buyOrder, openseaBuyerNonce.toNumber());
+    const buySig = await signOrder(env.chainId, buyer.address, buyOrder, openseaBuyerNonce.toNumber());
     const params = buildAtomicMatchParams(buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH);
     waitForTx(
       await openseaExchange
@@ -190,9 +190,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       env.admin.address
     );
     sellOrder.paymentToken = contracts.weth.address;
-    const sellSig = signOrder(env.chainId, seller, sellOrder, openseaSellerNonce.toNumber());
+    const sellSig = await signOrder(env.chainId, seller.address, sellOrder, openseaSellerNonce.toNumber());
     const buyOrder = makeBuyOrder(sellOrder, buyer.address, env.admin.address, sellOrder.listingTime);
-    const buySig = signOrder(env.chainId, buyer, buyOrder, openseaBuyerNonce.toNumber());
+    const buySig = await signOrder(env.chainId, buyer.address, buyOrder, openseaBuyerNonce.toNumber());
     const params = buildAtomicMatchParams(buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH);
     waitForTx(await contracts.weth.connect(buyer).approve(tokenTransferProxy, constants.MaxUint256));
     waitForTx(
@@ -226,7 +226,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       env.admin.address
     );
     const buyOrder = makeBuyOrder(sellOrder, env.accounts[3].address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Adapter: buyer address error");
+    await (await exceptDownpayment(sellOrder, buyOrder, borrowAmount)).to.revertedWith("Adapter: buyer address error");
   });
   it("Buyer payment token should be ETH or WETH", async () => {
     const sellOrder = createSellOrder(
@@ -240,9 +240,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     );
     sellOrder.paymentToken = "0x0000000000000000000000000000000000000001";
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith(
-      "Adapter: buyer payment token should be ETH or WETH"
-    );
+    await (
+      await exceptDownpayment(sellOrder, buyOrder, borrowAmount)
+    ).to.revertedWith("Adapter: buyer payment token should be ETH or WETH");
   });
   it("Order must be fixed price sale kind", async () => {
     const sellOrder = createSellOrder(
@@ -256,9 +256,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     );
     sellOrder.saleKind = 1;
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith(
-      "Adapter: order must be fixed price sale kind"
-    );
+    await (
+      await exceptDownpayment(sellOrder, buyOrder, borrowAmount)
+    ).to.revertedWith("Adapter: order must be fixed price sale kind");
   });
   it("Order price must be same", async () => {
     const sellOrder = createSellOrder(
@@ -272,7 +272,9 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     );
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
     buyOrder.basePrice = buyOrder.basePrice.sub(parseEther("1"));
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Adapter: order price must be same");
+    await (
+      await exceptDownpayment(sellOrder, buyOrder, borrowAmount)
+    ).to.revertedWith("Adapter: order price must be same");
   });
   it("WETH Insufficient", async () => {
     const sellOrder = createSellOrder(
@@ -285,7 +287,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       env.admin.address
     );
     const buyOrder = makeBuyOrder(sellOrder, adapter.address, env.admin.address, sellOrder.listingTime);
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("Adapter: WETH Insufficient");
+    await (await exceptDownpayment(sellOrder, buyOrder, borrowAmount)).to.revertedWith("Adapter: WETH Insufficient");
   });
   it("Should approve WETH and debtWETH", async () => {
     const sellOrder = createSellOrder(
@@ -301,7 +303,7 @@ makeSuite("OpenseaAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
 
     await approveBuyerWeth();
     // no debt weth approvement
-    await exceptDownpayment(sellOrder, buyOrder, borrowAmount).to.revertedWith("503");
+    await (await exceptDownpayment(sellOrder, buyOrder, borrowAmount)).to.revertedWith("503");
     await approveBuyerDebtWeth();
     await exceptDownpaymentSuccessed(sellOrder, buyOrder, borrowAmount);
   });

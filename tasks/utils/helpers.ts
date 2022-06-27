@@ -84,10 +84,11 @@ export const getChainId = async (): Promise<number> => {
   return (await DRE.ethers.provider.getNetwork()).chainId;
 };
 
-export const getContract = async (contractName: string, address: string): Promise<Contract> => {
-  return await DRE.ethers.getContractAt(contractName, address);
-};
+export const getContract = async <ContractType extends Contract>(
+  contractName: string,
+  address: string
+): Promise<ContractType> => (await DRE.ethers.getContractAt(contractName, address)) as ContractType;
 
-export const getContractFromDB = async (id: string): Promise<Contract> => {
+export const getContractFromDB = async <ContractType extends Contract>(id: string): Promise<ContractType> => {
   return getContract(id, await getContractAddressFromDB(id));
 };

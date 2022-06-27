@@ -1,7 +1,7 @@
 {
-  "name": "@benddao/exchange",
+  "name": "@benddao/downpayment",
   "version": "1.0.0",
-  "description": "Bend exchange smart",
+  "description": "Bend downpayment smart",
   "author": "BendDAO",
   "license": "MIT",
   "private": false,

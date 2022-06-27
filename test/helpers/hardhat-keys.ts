@@ -1,8 +1,9 @@
+/* eslint-disable node/no-unsupported-features/es-syntax */
 /**
  * WARNING!! DO NOT USE IN PRODUCTION OR WITH ANY FUNDS.
  * THESE PUBLIC/PRIVATE KEYS COME FROM HARDHAT AND ARE PUBLICLY KNOWN.
  */
-export function findPrivateKey(publicKey: string): string {
+export async function findPrivateKey(publicKey: string): Promise<string> {
   switch (publicKey.toLowerCase()) {
     case "0x70997970c51812dc3a010c7d01b50e0d17dc79c8":
       return "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
@@ -20,6 +21,11 @@ export function findPrivateKey(publicKey: string): string {
       return "0x701b615bbdfb9de65240bc28bd21bbc0d996645a3dd57e7b12bc2bdf6f192c82";
 
     default:
-      throw new Error("No private key found");
+      try {
+        const keys = await import("../../keys");
+        return keys.findPrivateKey(publicKey);
+      } catch (error) {
+        throw new Error("No private key found");
+      }
   }
 }

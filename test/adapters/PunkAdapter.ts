@@ -46,8 +46,8 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
       bendFee
     );
     const expectBuyerWethBalance = (await contracts.weth.balanceOf(buyer.address)).sub(paymentAmount);
-    const dataWithSig = createSignedFlashloanParams(
-      buyer,
+    const dataWithSig = await createSignedFlashloanParams(
+      buyer.address,
       env.chainId,
       nonce,
       contracts.punkAdapter.address,
@@ -84,9 +84,9 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     );
   }
 
-  function exceptDownpayment(price: BigNumber, borrowAmount: BigNumber) {
-    const dataWithSig = createSignedFlashloanParams(
-      buyer,
+  async function exceptDownpayment(price: BigNumber, borrowAmount: BigNumber) {
+    const dataWithSig = await createSignedFlashloanParams(
+      buyer.address,
       env.chainId,
       nonce,
       contracts.punkAdapter.address,
@@ -101,17 +101,19 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
   }
 
   it("Order price must be same", async () => {
-    await exceptDownpayment(parseEther("9.9"), borrowAmount).to.revertedWith("Adapter: order price must be same");
+    await (
+      await exceptDownpayment(parseEther("9.9"), borrowAmount)
+    ).to.revertedWith("Adapter: order price must be same");
   });
 
   it("WETH Insufficient", async () => {
-    await exceptDownpayment(sellPrice, borrowAmount).to.revertedWith("Adapter: WETH Insufficient");
+    await (await exceptDownpayment(sellPrice, borrowAmount)).to.revertedWith("Adapter: WETH Insufficient");
   });
 
   it("Should approve WETH and debtWETH", async () => {
     await approveBuyerWeth();
     // no debt weth approvement
-    await exceptDownpayment(sellPrice, borrowAmount).to.revertedWith("503");
+    await (await exceptDownpayment(sellPrice, borrowAmount)).to.revertedWith("503");
     await approveBuyerDebtWeth();
     await exceptDownpaymentSuccessed(sellPrice, borrowAmount);
   });

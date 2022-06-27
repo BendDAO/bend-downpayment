@@ -1,6 +1,5 @@
 /* eslint-disable node/no-extraneous-import */
 import { TypedDataDomain } from "@ethersproject/abstract-signer";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Signature } from "@ethersproject/bytes";
 import { BigNumber, utils } from "ethers";
 import { findPrivateKey } from "../helpers/hardhat-keys";
@@ -49,7 +48,7 @@ export interface TakerOrder {
 
 export interface SignMakerOrder extends MakerOrder {
   verifyingContract: string;
-  signerUser: SignerWithAddress;
+  signerUser: string;
   chainId: number;
 }
 
@@ -215,7 +214,7 @@ export async function createSignedMakerOrder({
     interceptor,
     interceptorExtra,
   };
-  const signedOrder = await signMakerOrder(chainId, findPrivateKey(signerUser.address), verifyingContract, makerOrder);
+  const signedOrder = await signMakerOrder(chainId, await findPrivateKey(signerUser), verifyingContract, makerOrder);
 
   // Extend makerOrder with proper signature
   const makerOrderExtended: SignedMakerOrder = {
@@ -258,7 +257,7 @@ export interface DataWithSignature {
 }
 
 export async function createSignedFlashloanParams(
-  signer: SignerWithAddress,
+  signerAddress: string,
   order: SignMakerOrder,
   verifyingContract: string,
   nonce: BigNumber
@@ -267,7 +266,7 @@ export async function createSignedFlashloanParams(
 
   const sig: Signature = await signFlashloanParams(
     order.chainId,
-    findPrivateKey(signer.address),
+    await findPrivateKey(signerAddress),
     verifyingContract,
     signedOrder,
     nonce

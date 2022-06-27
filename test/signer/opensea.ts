@@ -10,7 +10,6 @@ import { ERC721v3Schema } from "wyvern-schemas/dist/schemas/ERC721";
 import { ethers, constants, BigNumber } from "ethers";
 import { Asset } from "opensea-js/lib/types";
 import { WyvernProtocol } from "wyvern-js";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { findPrivateKey } from "../helpers/hardhat-keys";
 export const NULL_BLOCK_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -89,7 +88,12 @@ export const getSignatureFromTypedData = (privateKey: string, typedData: any): E
   return fromRpcSig(signature);
 };
 
-export const signOrder = (chainId: number, signer: SignerWithAddress, order: Order, nonce: number): ECDSASignature => {
+export const signOrder = async (
+  chainId: number,
+  signer: string,
+  order: Order,
+  nonce: number
+): Promise<ECDSASignature> => {
   const message = {
     types: EIP_712_ORDER_TYPES,
     domain: {
@@ -126,7 +130,7 @@ export const signOrder = (chainId: number, signer: SignerWithAddress, order: Ord
       nonce,
     },
   };
-  return getSignatureFromTypedData(findPrivateKey(signer.address), message);
+  return getSignatureFromTypedData(await findPrivateKey(signer), message);
 };
 
 export const encodeSellCalldata = (asset: Asset, seller: string, target: string) => {
@@ -322,9 +326,9 @@ export interface DataWithSignature {
   sig: ECDSASignature;
 }
 
-export const createSignedFlashloanParams = (
+export const createSignedFlashloanParams = async (
   chainId: number,
-  signer: SignerWithAddress,
+  signer: string,
   nonce: string,
   adapter: string,
   nftAsset: string,
@@ -333,7 +337,7 @@ export const createSignedFlashloanParams = (
   sell: Order,
   sellSig: ECDSASignature,
   referrerAddress: string
-): DataWithSignature => {
+): Promise<DataWithSignature> => {
   const bugSig = {
     v: 0,
     r: NULL_BLOCK_HASH,
@@ -421,7 +425,7 @@ export const createSignedFlashloanParams = (
       nonce,
     },
   };
-  const sig = getSignatureFromTypedData(findPrivateKey(signer.address), message);
+  const sig = getSignatureFromTypedData(await findPrivateKey(signer), message);
   return { data, sig };
 };
 

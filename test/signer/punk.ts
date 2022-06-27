@@ -4,7 +4,6 @@
 import { BigNumber, utils } from "ethers";
 import { fromRpcSig, ECDSASignature } from "ethereumjs-util";
 import { signTypedData, SignTypedDataVersion } from "@metamask/eth-sig-util";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { findPrivateKey } from "../helpers/hardhat-keys";
 const { defaultAbiCoder } = utils;
 
@@ -62,15 +61,15 @@ export interface DataWithSignature {
   sig: ECDSASignature;
 }
 
-export function createSignedFlashloanParams(
-  signer: SignerWithAddress,
+export async function createSignedFlashloanParams(
+  signer: string,
   chainId: number,
   nonce: BigNumber,
   adapter: string,
   punkIndex: number,
   buyPrice: BigNumber
-): DataWithSignature {
-  const sig = signFlashLoanParams(findPrivateKey(signer.address), chainId, nonce, adapter, punkIndex, buyPrice);
+): Promise<DataWithSignature> {
+  const sig = signFlashLoanParams(await findPrivateKey(signer), chainId, nonce, adapter, punkIndex, buyPrice);
   const data: string = defaultAbiCoder.encode(["(uint256,uint256)"], [[punkIndex.toString(), buyPrice.toString()]]);
   return { data, sig };
 }

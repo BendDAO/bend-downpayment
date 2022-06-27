@@ -74,7 +74,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
     const expectBuyerWethBalance = (await contracts.weth.balanceOf(buyer.address)).sub(paymentAmount);
 
     const dataWithSig = await createSignedFlashloanParams(
-      buyer,
+      buyer.address,
       {
         isOrderAsk: true,
         maker: seller.address,
@@ -89,7 +89,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
         endTime: endTimeOrder,
         minPercentageToAsk: constants.Zero,
         params: emptyEncodedBytes,
-        signerUser: seller,
+        signerUser: seller.address,
         chainId: env.chainId,
         verifyingContract: exchange.address,
       },
@@ -136,7 +136,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
       endTime: endTimeOrder,
       minPercentageToAsk: constants.Zero,
       params: emptyEncodedBytes,
-      signerUser: seller,
+      signerUser: seller.address,
       chainId: env.chainId,
       verifyingContract: exchange.address,
     });
@@ -160,7 +160,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
   it("Maker must ask order", async () => {
     const price = parseEther("10");
     const dataWithSig = await createSignedFlashloanParams(
-      buyer,
+      buyer.address,
       {
         isOrderAsk: false,
         maker: seller.address,
@@ -175,7 +175,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
         endTime: endTimeOrder,
         minPercentageToAsk: constants.Zero,
         params: emptyEncodedBytes,
-        signerUser: seller,
+        signerUser: seller.address,
         chainId: env.chainId,
         verifyingContract: exchange.address,
       },
@@ -190,7 +190,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
   it("Currency must be WETH", async () => {
     const price = parseEther("10");
     const dataWithSig = await createSignedFlashloanParams(
-      buyer,
+      buyer.address,
       {
         isOrderAsk: true,
         maker: seller.address,
@@ -205,7 +205,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
         endTime: endTimeOrder,
         minPercentageToAsk: constants.Zero,
         params: emptyEncodedBytes,
-        signerUser: seller,
+        signerUser: seller.address,
         chainId: env.chainId,
         verifyingContract: exchange.address,
       },
@@ -220,7 +220,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
   it("Should approve WETH and debtWETH", async () => {
     const price = parseEther("10");
     const dataWithSig = await createSignedFlashloanParams(
-      buyer,
+      buyer.address,
       {
         isOrderAsk: true,
         maker: seller.address,
@@ -235,7 +235,7 @@ makeSuite("LooksRareExchangeAdapter", (contracts: Contracts, env: Env, snapshots
         endTime: endTimeOrder,
         minPercentageToAsk: constants.Zero,
         params: emptyEncodedBytes,
-        signerUser: seller,
+        signerUser: seller.address,
         chainId: env.chainId,
         verifyingContract: exchange.address,
       },
