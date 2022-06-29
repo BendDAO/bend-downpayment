@@ -2,6 +2,7 @@
 pragma solidity 0.8.9;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
 import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -15,7 +16,7 @@ import {IDownpayment} from "./interfaces/IDownpayment.sol";
 
 import {PercentageMath} from "./libraries/PercentageMath.sol";
 
-contract Downpayment is Ownable, IDownpayment {
+contract Downpayment is Ownable, ReentrancyGuard, IDownpayment {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
     using Counters for Counters.Counter;
@@ -57,12 +58,12 @@ contract Downpayment is Ownable, IDownpayment {
         uint256 borrowAmount,
         bytes calldata data,
         Sig calldata sig
-    ) external payable override onlyWhitelisted(adapter) {
+    ) external payable override onlyWhitelisted(adapter) nonReentrant {
         if (msg.value > 0) {
             // Wrap ETH sent to this contract
             WETH.deposit{value: msg.value}();
             // Sent WETH back to sender
-            IERC20(address(WETH)).safeTransferFrom(address(this), msg.sender, msg.value);
+            IERC20(address(WETH)).safeTransfer(msg.sender, msg.value);
         }
         IAaveLendPool aavePool = IAaveLendPool(aaveAddressesProvider.getLendingPool());
         address[] memory assets = new address[](1);
