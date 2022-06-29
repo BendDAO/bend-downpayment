@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.9;
 
-import {EIP712Upgradeable, ECDSAUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
+import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import {IERC20Upgradeable, SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {SignatureCheckerUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 
 import {IAaveFlashLoanReceiver} from "../interfaces/IAaveFlashLoanReceiver.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
@@ -205,9 +206,14 @@ abstract contract BaseAdapter is
         bytes32 r,
         bytes32 s
     ) internal view {
-        bytes32 hash = _hashTypedDataV4(paramsHash);
-        address signer = ECDSAUpgradeable.recover(hash, v, r, s);
-        require(signer == _signer, "Adapter: invalid signature");
+        require(
+            SignatureCheckerUpgradeable.isValidSignatureNow(
+                _signer,
+                _hashTypedDataV4(paramsHash),
+                abi.encodePacked(r, s, v)
+            ),
+            "Adapter: invalid signature"
+        );
     }
 
     /**
