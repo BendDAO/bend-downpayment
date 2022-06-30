@@ -135,7 +135,7 @@ export const signFlashloanParams = (
   ];
 
   const values = [
-    "0xbf059ddc89bea9b899a4344776222fcc16e3ed15cb0e8c6bfe1b284297dde621",
+    "0xde2bb92f4c0c7506ba089f73afcdd7897ba53fd353051a35edd51005fe40d59f",
     order.isOrderAsk,
     order.maker,
     order.collection,

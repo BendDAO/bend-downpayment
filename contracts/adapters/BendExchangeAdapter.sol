@@ -10,8 +10,8 @@ contract BendExchangeAdapter is BaseAdapter {
     string public constant NAME = "Bend Exchange Downpayment Adapter";
     string public constant VERSION = "1.0";
 
-    //keccak256("Params(bool isOrderAsk,address maker,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params,address interceptor,bytes interceptorExtra,uint8 v,bytes32 r,bytes32 s,uint256 nonce2");
-    bytes32 private constant _PARAMS_TYPEHASH = 0x0c23a5a2214bae03ac403c4d0de66939a151e4ac8d99a90a6e2c7db99c1570c4;
+    //keccak256("Params(bool isOrderAsk,address maker,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params,address interceptor,bytes interceptorExtra,uint8 v,bytes32 r,bytes32 s,uint256 nonce2)");
+    bytes32 private constant _PARAMS_TYPEHASH = 0x6482968240152d913828da2846e216aa4e202dd2e56802d8dfd4767d64867463;
 
     IBendExchange public bendExchange;
 

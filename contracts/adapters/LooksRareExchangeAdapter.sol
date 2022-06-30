@@ -10,8 +10,8 @@ contract LooksRareExchangeAdapter is BaseAdapter {
     string public constant NAME = "LooksRare Exchange Downpayment Adapter";
     string public constant VERSION = "1.0";
 
-    //keccak256("Params(bool isOrderAsk,address maker,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,uint8 v,bytes32 r,bytes32 s,uint256 nonce2");
-    bytes32 private constant _PARAMS_TYPEHASH = 0xbf059ddc89bea9b899a4344776222fcc16e3ed15cb0e8c6bfe1b284297dde621;
+    //keccak256("Params(bool isOrderAsk,address maker,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,uint8 v,bytes32 r,bytes32 s,uint256 nonce2)");
+    bytes32 private constant _PARAMS_TYPEHASH = 0xde2bb92f4c0c7506ba089f73afcdd7897ba53fd353051a35edd51005fe40d59f;
 
     ILooksRareExchange public looksRareExchange;
 
