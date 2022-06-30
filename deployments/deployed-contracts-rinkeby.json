@@ -8,7 +8,7 @@
     "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
   },
   "LooksRareExchangeAdapter": {
-    "address": "0x2B2608502F5627475A3B71fE5CdFc7b27d98C0B1",
+    "address": "0xF6D46763A48FB5a210ce9EF0FFecFb62300C34FC",
     "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
   },
   "OpenseaAdapter": {

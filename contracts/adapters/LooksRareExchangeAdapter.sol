@@ -11,7 +11,7 @@ contract LooksRareExchangeAdapter is BaseAdapter {
     string public constant VERSION = "1.0";
 
     //keccak256("Params(bool isOrderAsk,address maker,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,uint8 v,bytes32 r,bytes32 s,uint256 nonce2");
-    bytes32 private constant _PARAMS_TYPEHASH = 0x0c23a5a2214bae03ac403c4d0de66939a151e4ac8d99a90a6e2c7db99c1570c4;
+    bytes32 private constant _PARAMS_TYPEHASH = 0xbf059ddc89bea9b899a4344776222fcc16e3ed15cb0e8c6bfe1b284297dde621;
 
     ILooksRareExchange public looksRareExchange;
 

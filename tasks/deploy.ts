@@ -10,7 +10,7 @@ import {
   PunkMarket,
   WETH,
 } from "../test/config";
-import { deployContract, deployProxyContract, waitForTx } from "./utils/helpers";
+import { deployContract, deployProxyContract, getContractFromDB, waitForTx } from "./utils/helpers";
 
 task("deploy:full", "Deploy all contracts")
   .addParam("fee", "protocol fee")
@@ -59,5 +59,23 @@ task("deploy:full", "Deploy all contracts")
     waitForTx(await downpayment.updateFee(punkAdapter.address, fee));
     waitForTx(await downpayment.updateFee(openseaAdapter.address, fee));
     waitForTx(await downpayment.updateFee(bendExchangeAdapter.address, fee));
+    waitForTx(await downpayment.updateFee(looksRareExchangeAdapter.address, fee));
+  });
+
+task("deploy:looksRareExchangeAdapter", "Deploy looksRareExchangeAdapter")
+  .addParam("fee", "protocol fee")
+  .setAction(async ({ fee }, { network, run }) => {
+    await run("set-DRE");
+    await run("compile");
+    const networkName = network.name;
+
+    const looksRareExchange = getParams(LooksRareExchange, networkName)[0];
+    const downpayment = await getContractFromDB("Downpayment");
+    const looksRareExchangeAdapter = await deployProxyContract(
+      "LooksRareExchangeAdapter",
+      [downpayment.address, looksRareExchange],
+      true
+    );
+    waitForTx(await downpayment.addAdapter(looksRareExchangeAdapter.address));
     waitForTx(await downpayment.updateFee(looksRareExchangeAdapter.address, fee));
   });
