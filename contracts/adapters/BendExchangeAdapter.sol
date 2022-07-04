@@ -14,6 +14,7 @@ contract BendExchangeAdapter is BaseAdapter {
     bytes32 private constant _PARAMS_TYPEHASH = 0x6482968240152d913828da2846e216aa4e202dd2e56802d8dfd4767d64867463;
 
     IBendExchange public bendExchange;
+    address private proxy;
 
     struct Params {
         // maker order
@@ -42,8 +43,7 @@ contract BendExchangeAdapter is BaseAdapter {
         __BaseAdapter_init(NAME, VERSION, _downpayment);
 
         bendExchange = IBendExchange(_bendExchange);
-        address proxy = IAuthorizationManager(bendExchange.authorizationManager()).registerProxy();
-        downpayment.WETH().approve(proxy, type(uint256).max);
+        proxy = IAuthorizationManager(bendExchange.authorizationManager()).registerProxy();
     }
 
     function _checkParams(
@@ -102,7 +102,7 @@ contract BendExchangeAdapter is BaseAdapter {
             );
     }
 
-    function _exchange(BaseParams memory, bytes memory _params) internal override {
+    function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
         IBendExchange.TakerOrder memory takerBid;
         {
@@ -136,7 +136,9 @@ contract BendExchangeAdapter is BaseAdapter {
             makerAsk.r = _orderParams.r;
             makerAsk.s = _orderParams.s;
         }
+        downpayment.WETH().approve(proxy, _baseParams.salePrice);
         bendExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
+        downpayment.WETH().approve(proxy, 0);
     }
 
     function _decodeParams(bytes memory _params) internal pure returns (Params memory) {

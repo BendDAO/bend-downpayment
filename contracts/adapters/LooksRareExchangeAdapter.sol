@@ -39,7 +39,6 @@ contract LooksRareExchangeAdapter is BaseAdapter {
     function initialize(address _downpayment, address _looksRareExchange) external initializer {
         __BaseAdapter_init(NAME, VERSION, _downpayment);
         looksRareExchange = ILooksRareExchange(_looksRareExchange);
-        downpayment.WETH().approve(_looksRareExchange, type(uint256).max);
     }
 
     function _checkParams(
@@ -87,7 +86,7 @@ contract LooksRareExchangeAdapter is BaseAdapter {
             );
     }
 
-    function _exchange(BaseParams memory, bytes memory _params) internal override {
+    function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
         ILooksRareExchange.TakerOrder memory takerBid;
         {
@@ -117,7 +116,9 @@ contract LooksRareExchangeAdapter is BaseAdapter {
             makerAsk.r = _orderParams.r;
             makerAsk.s = _orderParams.s;
         }
+        downpayment.WETH().approve(address(looksRareExchange), _baseParams.salePrice);
         looksRareExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
+        downpayment.WETH().approve(address(looksRareExchange), 0);
     }
 
     function _decodeParams(bytes memory _params) internal pure returns (Params memory) {
