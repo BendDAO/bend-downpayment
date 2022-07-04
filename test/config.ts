@@ -6,7 +6,6 @@ export enum Network {
 export interface Params<T> {
   [Network.rinkeby]: T;
   [Network.main]: T;
-  [network: string]: T;
 }
 
 export const getParams = <T>({ rinkeby, main }: Params<T>, network: string): T => {
@@ -96,4 +95,17 @@ export const BendProtocol: Params<string[]> = {
     "0x04af5eF6100E1025560Be50FF244CB31f60d08c2", // NFTOracle
   ],
   [Network.main]: [],
+};
+
+export const Seaport: Params<string[]> = {
+  [Network.rinkeby]: [
+    "0x00000000006c3852cbef3e08e8df289169ede581", // exchange
+    "0x00000000e88fe2628ebc5da81d2b3cead633e89e", // zone
+    "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
+    "0x1e0049783f008a0085193e00003d00cd54003c71", // OPENSEA_CONDUIT_ADDRESS
+  ],
+  [Network.main]: [
+    "0x00000000006c3852cbef3e08e8df289169ede581", // exchange
+    "0x004c00500000ad104d7dbd00e3ae0a5c00560c00", // zone
+  ],
 };
