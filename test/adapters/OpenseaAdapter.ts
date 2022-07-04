@@ -18,7 +18,7 @@ import {
 } from "../signer/opensea";
 import { getParams, OpenseaExchange } from "../config";
 import { network } from "hardhat";
-import { IERC721, IOpenseaExchage, MintableERC721, OpenseaAdapter } from "../../typechain";
+import { IERC721, IOpenseaExchage, MintableERC721, OpenseaAdapter } from "../../typechain-types";
 import { latest } from "../helpers/block-traveller";
 import { Asset } from "opensea-js/lib/types";
 const { parseEther } = utils;

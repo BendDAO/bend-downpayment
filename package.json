@@ -50,8 +50,8 @@
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@openzeppelin/hardhat-upgrades": "^1.18.3",
-    "@typechain/ethers-v5": "^7.0.1",
-    "@typechain/hardhat": "^2.3.0",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
     "@types/chai": "^4.2.21",
     "@types/lowdb": "^1.0.9",
     "@types/mocha": "^9.0.0",
@@ -82,11 +82,9 @@
     "solidity-coverage": "^0.7.21",
     "tmp-promise": "^3.0.3",
     "ts-node": "^10.1.0",
-    "typechain": "^5.1.2",
+    "typechain": "^8.1.0",
     "typescript": "^4.5.2",
-    "wyvern-js": "git+https://github.com/ProjectOpenSea/wyvern-js.git#7823dfdf5a272ebbc6a46e66d23563a9d6cc1be2",
-    "wyvern-schemas": "git+https://github.com/ProjectOpenSea/wyvern-schemas.git#0a8d569931ddb6faa6e96f5a60fa2f83f0a8750e",
-    "opensea-js": "^3.0.2"
+    "opensea-js": "^4.0.4"
   },
   "dependencies": {
     "@openzeppelin/contracts-upgradeable": "4.6.0",

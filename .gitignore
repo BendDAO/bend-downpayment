@@ -109,6 +109,7 @@ node_modules
 coverage
 coverage.json
 typechain
+typechain-types
 .DS_Store
 
 # Hardhat files

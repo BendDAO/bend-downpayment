@@ -10,7 +10,7 @@ import {
   ILendPool,
   ILendPoolAddressesProvider,
   IOpenseaExchage,
-} from "../typechain";
+} from "../typechain-types";
 import { getContractFromDB, getContractAddressFromDB, getChainId, getContract, waitForTx } from "./utils/helpers";
 import * as bend from "../test/signer/bend";
 import * as opensea from "../test/signer/opensea";

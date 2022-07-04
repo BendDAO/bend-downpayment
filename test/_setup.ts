@@ -23,7 +23,7 @@ import {
   INFTOracle,
   IBendExchange,
   ILooksRareTransferSelectorNFT,
-} from "../typechain";
+} from "../typechain-types";
 import {
   getParams,
   WETH,
@@ -36,8 +36,6 @@ import {
 } from "./config";
 import { waitForTx } from "../tasks/utils/helpers";
 import { constants } from "ethers";
-import { ILooksRareExchange } from "../typechain/ILooksRareExchange";
-import { LooksRareExchangeAdapter } from "../typechain/LooksRareExchangeAdapter";
 
 export interface Env {
   initialized: boolean;

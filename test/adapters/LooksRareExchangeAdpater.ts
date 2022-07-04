@@ -10,7 +10,7 @@ import { assertAlmostEqualTol } from "../helpers/equals";
 
 import { LooksRareExchange, getParams } from "../config";
 import { ethers, network } from "hardhat";
-import { IERC721, ILooksRareExchange, LooksRareExchangeAdapter, MintableERC721 } from "../../typechain";
+import { IERC721, ILooksRareExchange, LooksRareExchangeAdapter, MintableERC721 } from "../../typechain-types";
 import { createSignedFlashloanParams, createSignedMakerOrder, createTakerOrder } from "../signer/looksRare";
 const { parseEther, defaultAbiCoder } = utils;
 const emptyEncodedBytes = defaultAbiCoder.encode([], []);
