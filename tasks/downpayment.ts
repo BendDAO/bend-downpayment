@@ -1,7 +1,7 @@
 import { BigNumber, constants } from "ethers";
 import { defaultAbiCoder, parseEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
-import { BendExchange, BendProtocol, getParams, OpenseaExchange, PunkMarket, WETH } from "../test/config";
+import { BendExchange, BendProtocol, getParams, OpenseaExchange, PunkMarket, Seaport, WETH } from "../test/config";
 import {
   Downpayment,
   ERC721,
@@ -10,11 +10,13 @@ import {
   ILendPool,
   ILendPoolAddressesProvider,
   IOpenseaExchage,
+  ISeaport,
 } from "../typechain-types";
 import { getContractFromDB, getContractAddressFromDB, getChainId, getContract, waitForTx } from "./utils/helpers";
 import * as bend from "../test/signer/bend";
 import * as opensea from "../test/signer/opensea";
 import * as punk from "../test/signer/punk";
+import * as seaport from "../test/signer/seaport";
 import { findPrivateKey } from "../test/helpers/hardhat-keys";
 
 task("repay", "repay loan")
@@ -148,6 +150,104 @@ task("downpayment:bendExchange", "downpayment with bend exchange")
         .connect(takerSigner)
         .buy(bendExchangeAdapter, borrowAmount, dataWithSig.data, dataWithSig.sig, { value: price.sub(borrowAmount) })
     );
+  });
+
+task("downpayment:seaport", "downpayment with seaport exchange")
+  .addParam("maker", "address of maker")
+  .addParam("taker", "address of taker")
+  .addParam("nft", "address of nft")
+  .addParam("tokenid", "token id of nft")
+  .addParam("price", "sell price of nft")
+  .setAction(async ({ maker, taker, nft, tokenid, price }, { ethers, network, run }) => {
+    await run("set-DRE");
+    const chainId = await getChainId();
+    console.log(`chainId: ${chainId}`);
+    console.log(`maker: ${maker}`);
+    console.log(`taker: ${taker}`);
+    console.log(`nft: ${nft}`);
+    console.log(`tokenid: ${tokenid}`);
+
+    const config = getParams(Seaport, network.name);
+    const exchange = await getContract<ISeaport>("ISeaport", config[0]);
+    const zone = config[1];
+    const conduitKey = config[2];
+    const conduitAddress = config[3];
+
+    const adapter = await getContractAddressFromDB("SeaportAdapter");
+    const downpayment = await getContractFromDB<Downpayment>("Downpayment");
+    const nonce = await downpayment.nonces(taker);
+
+    const makerSigner = new ethers.Wallet(await findPrivateKey(maker), ethers.provider);
+    const takerSigner = new ethers.Wallet(await findPrivateKey(taker), ethers.provider);
+    price = parseEther(price);
+
+    const weth = getParams(WETH, network.name);
+
+    const bendProtocolParams = getParams(BendProtocol, network.name);
+
+    const bendAddressesProvider = await getContract<ILendPoolAddressesProvider>(
+      "ILendPoolAddressesProvider",
+      bendProtocolParams[0]
+    );
+    const bendLendPool = await getContract("ILendPool", await bendAddressesProvider.getLendPool());
+    const debtWETH = await getContract("IDebtToken", bendProtocolParams[2]);
+    const nftCollateralData = await bendLendPool.getNftCollateralData(nft, weth);
+    const borrowAmount = nftCollateralData.availableBorrowsInReserve.sub(1);
+    console.log(`borrow amount: ${borrowAmount.toString()}`);
+
+    // check allowance
+    const wethContract = await getContract("IWETH", weth);
+    const allowance = await wethContract.allowance(taker, adapter);
+    if (allowance.lt(price)) {
+      console.log("approve taker weth");
+      waitForTx(await wethContract.connect(takerSigner).approve(adapter, constants.MaxUint256));
+      console.log("approve taker debtWETH");
+      waitForTx(await debtWETH.connect(takerSigner).approveDelegation(adapter, constants.MaxUint256));
+    }
+
+    const nftContract = await getContract<ERC721>("ERC721", nft);
+    const nftAllowance = await nftContract.isApprovedForAll(maker, conduitAddress);
+    if (!nftAllowance) {
+      console.log("approve maker nft");
+      waitForTx(await nftContract.connect(makerSigner).setApprovalForAll(conduitAddress, true));
+    }
+
+    const startTimeNow = BigNumber.from(
+      (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp
+    );
+
+    const exchangeNonce = await exchange.getCounter(maker);
+
+    const order = await seaport.createOrder({
+      offerer: maker,
+      conduitKey: conduitKey,
+      orderType: seaport.OrderType.FULL_RESTRICTED,
+      zone: zone,
+      startTime: startTimeNow,
+      endTime: startTimeNow.add(1000),
+      offer: {
+        itemType: seaport.ItemType.ERC721,
+        token: nft,
+        identifier: tokenid,
+      },
+      consideration: {
+        token: weth,
+        amount: price.toString(),
+        recipient: maker,
+      },
+      fees: [
+        {
+          basisPoints: 200,
+          recipient: taker,
+        },
+      ],
+      nonce: exchangeNonce,
+    });
+
+    const signedOrder = await seaport.signOrder(chainId, maker, exchange.address, order, conduitKey, exchangeNonce);
+
+    const dataWithSig = await seaport.createSignedFlashloanParams(chainId, taker, adapter, signedOrder, nonce);
+    waitForTx(await downpayment.connect(takerSigner).buy(adapter, borrowAmount, dataWithSig.data, dataWithSig.sig));
   });
 
 task("downpayment:opensea", "downpayment with opensea exchange")

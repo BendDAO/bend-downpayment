@@ -18,5 +18,9 @@
   "PunkAdapter": {
     "address": "0x953C1535CA684528A9e93F1BC820E863Db491188",
     "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
+  },
+  "SeaportAdapter": {
+    "address": "0xb1182Ef7fE8d9Dcb86A92Ab3771cfEF5d00295A9",
+    "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
   }
 }

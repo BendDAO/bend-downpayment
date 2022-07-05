@@ -3,7 +3,6 @@ import { TypedDataDomain } from "@ethersproject/abstract-signer";
 import { Signature } from "@ethersproject/bytes";
 import { BigNumber, utils, Wallet } from "ethers";
 import { findPrivateKey } from "../helpers/hardhat-keys";
-import { ethers } from "hardhat";
 import {
   OrderParameters,
   OrderComponents,
@@ -187,7 +186,7 @@ export const signOrder = async (
   };
 
   // Use EIP-2098 compact signatures to save gas. https://eips.ethereum.org/EIPS/eip-2098
-  const signature = ethers.utils.splitSignature(
+  const signature = utils.splitSignature(
     await signer._signTypedData(domainData, EIP_712_ORDER_TYPE, orderComponents)
   ).compact;
   const { offer, consideration } = order;
@@ -244,7 +243,7 @@ export const signParams = async (
   const signer = new Wallet(await findPrivateKey(signerAddress));
   const value = { ...order, nonce };
   const signature = await signer._signTypedData(domainData, EIP_712_PARAM_TYPE, value);
-  return ethers.utils.splitSignature(signature);
+  return utils.splitSignature(signature);
 };
 
 export interface DataWithSignature {

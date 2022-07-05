@@ -8,12 +8,11 @@ import {BaseAdapter, IERC721Upgradeable} from "./BaseAdapter.sol";
 contract SeaportAdapter is BaseAdapter {
     string public constant NAME = "Seaport Downpayment Adapter";
     string public constant VERSION = "1.0";
-    bytes32 private constant _PARAMS_TYPEHASH =
-        keccak256(
-            "Params(address considerationToken,uint256 considerationIdentifier,uint256 considerationAmount,address offerer,address zone,address offerToken,uint256 offerIdentifier,uint256 offerAmount,uint8 basicOrderType,uint256 startTime,uint256 endTime,bytes32 zoneHash,uint256 salt,bytes32 offererConduitKey,bytes32 fulfillerConduitKey,uint256 totalOriginalAdditionalRecipients,AdditionalRecipient[] additionalRecipients,bytes signature,uint256 nonce)AdditionalRecipient(uint256 amount,address recipient)"
-        );
+    // keccak256("Params(address considerationToken,uint256 considerationIdentifier,uint256 considerationAmount,address offerer,address zone,address offerToken,uint256 offerIdentifier,uint256 offerAmount,uint8 basicOrderType,uint256 startTime,uint256 endTime,bytes32 zoneHash,uint256 salt,bytes32 offererConduitKey,bytes32 fulfillerConduitKey,uint256 totalOriginalAdditionalRecipients,AdditionalRecipient[] additionalRecipients,bytes signature,uint256 nonce)AdditionalRecipient(uint256 amount,address recipient)");
+    bytes32 private constant _PARAMS_TYPEHASH = 0x2cf1f32523d87995ff90f07dd49a8b22ec133776b00dcf3c2dc4d5fe006a37d6;
+    // keccak256("AdditionalRecipient(uint256 amount,address recipient)");
     bytes32 internal constant _ADDITIONAL_RECIPIENT_TYPEHASH =
-        keccak256("AdditionalRecipient(uint256 amount,address recipient)");
+        0x186f4a3e3c9707a61b54896806864237cf24613b9acdee6a7ac9d738e7f85b6c;
     ISeaport public seaportExchange;
     address public conduitAddress;
 

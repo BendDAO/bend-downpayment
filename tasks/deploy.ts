@@ -8,6 +8,7 @@ import {
   LooksRareExchange,
   OpenseaExchange,
   PunkMarket,
+  Seaport,
   WETH,
 } from "../test/config";
 import { deployContract, deployProxyContract, getContractFromDB, waitForTx } from "./utils/helpers";
@@ -29,6 +30,26 @@ task("deploy:full", "Deploy all contracts")
     await run("deploy:bendExchangeAdapter", { fee });
     await run("deploy:openseaAdapter", { fee });
     await run("deploy:punkAdapter", { fee });
+    await run("deploy:seaportAdapter", { fee });
+  });
+
+task("deploy:seaportAdapter", "Deploy seaportAdapter")
+  .addParam("fee", "protocol fee")
+  .setAction(async ({ fee }, { network, run }) => {
+    await run("set-DRE");
+    await run("compile");
+    const networkName = network.name;
+
+    const seaportExchange = getParams(Seaport, networkName)[0];
+    const conduitAddress = getParams(Seaport, networkName)[3];
+    const downpayment = await getContractFromDB("Downpayment");
+    const seaportAdapter = await deployProxyContract(
+      "SeaportAdapter",
+      [downpayment.address, seaportExchange, conduitAddress],
+      true
+    );
+    waitForTx(await downpayment.addAdapter(seaportAdapter.address));
+    waitForTx(await downpayment.updateFee(seaportAdapter.address, fee));
   });
 
 task("deploy:looksRareExchangeAdapter", "Deploy looksRareExchangeAdapter")
