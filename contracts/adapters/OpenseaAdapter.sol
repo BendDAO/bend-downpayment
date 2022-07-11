@@ -121,6 +121,7 @@ contract OpenseaAdapter is BaseAdapter {
             BaseParams({
                 nftAsset: _orderParams.nftAsset,
                 nftTokenId: _orderParams.nftTokenId,
+                currency: vars.buyerpaymentToken,
                 salePrice: vars.sellPrice,
                 paramsHash: _hashParams(_orderParams, _nonce)
             });
@@ -252,9 +253,8 @@ contract OpenseaAdapter is BaseAdapter {
 
     function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
-        address _sellerpaymentToken = _orderParams.addrs[13];
         uint256 paymentValue = _baseParams.salePrice;
-        if (_sellerpaymentToken == address(0)) {
+        if (_baseParams.currency == address(0)) {
             downpayment.WETH().withdraw(paymentValue);
             openseaExchange.atomicMatch_{value: paymentValue}(
                 _orderParams.addrs,

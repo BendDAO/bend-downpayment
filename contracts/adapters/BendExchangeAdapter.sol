@@ -65,6 +65,7 @@ contract BendExchangeAdapter is BaseAdapter {
             BaseParams({
                 nftAsset: _orderParams.collection,
                 nftTokenId: _orderParams.tokenId,
+                currency: _orderParams.currency,
                 salePrice: _orderParams.price,
                 paramsHash: _hashParams(_orderParams, _nonce)
             });

@@ -216,7 +216,7 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     expect(await nft.ownerOf(tokenId)).to.be.equal(buyer.address);
   });
 
-  it("payment token should be ETH or WETH", async () => {
+  it("currency should be ETH or WETH", async () => {
     const order = await createOrder({
       offerer: seller.address,
       conduitKey: conduitKey,
@@ -237,9 +237,7 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       fees: [],
       nonce: exchangeNonce,
     });
-    await (
-      await exceptDownpayment(order, borrowAmount)
-    ).to.revertedWith("Adapter: payment token should be ETH or WETH");
+    await (await exceptDownpayment(order, borrowAmount)).to.revertedWith("Adapter: currency should be ETH or WETH");
   });
 
   it("downpayment buy with WETH", async () => {

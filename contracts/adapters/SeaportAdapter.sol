@@ -39,7 +39,7 @@ contract SeaportAdapter is BaseAdapter {
         // Check order params
         require(
             address(0) == _orderParams.considerationToken || _WETH == _orderParams.considerationToken,
-            "Adapter: payment token should be ETH or WETH"
+            "Adapter: currency should be ETH or WETH"
         );
 
         uint256 sellPrice = _orderParams.considerationAmount;
@@ -54,6 +54,7 @@ contract SeaportAdapter is BaseAdapter {
             BaseParams({
                 nftAsset: _orderParams.offerToken,
                 nftTokenId: _orderParams.offerIdentifier,
+                currency: _orderParams.considerationToken,
                 salePrice: sellPrice,
                 paramsHash: _hashParams(_orderParams, _nonce)
             });
@@ -114,7 +115,7 @@ contract SeaportAdapter is BaseAdapter {
     function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
         ISeaport.BasicOrderParameters memory _orderParams = _decodeParams(_params);
         uint256 paymentValue = _baseParams.salePrice;
-        if (_orderParams.considerationToken == address(0)) {
+        if (_baseParams.currency == address(0)) {
             downpayment.WETH().withdraw(paymentValue);
             seaportExchange.fulfillBasicOrder{value: paymentValue}(_orderParams);
         } else {

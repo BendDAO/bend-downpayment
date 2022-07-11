@@ -46,6 +46,7 @@ abstract contract BaseAdapter is
     struct BaseParams {
         address nftAsset;
         uint256 nftTokenId;
+        address currency;
         uint256 salePrice;
         bytes32 paramsHash;
     }
