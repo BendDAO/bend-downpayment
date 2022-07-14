@@ -10,6 +10,7 @@ import {
   PunkMarket,
   Seaport,
   WETH,
+  X2Y2,
 } from "../test/config";
 import { deployContract, deployProxyContract, getContractFromDB, waitForTx } from "./utils/helpers";
 
@@ -31,6 +32,21 @@ task("deploy:full", "Deploy all contracts")
     await run("deploy:openseaAdapter", { fee });
     await run("deploy:punkAdapter", { fee });
     await run("deploy:seaportAdapter", { fee });
+    await run("deploy:x2y2Adapter", { fee });
+  });
+
+task("deploy:x2y2Adapter", "Deploy x2y2Adapter")
+  .addParam("fee", "protocol fee")
+  .setAction(async ({ fee }, { network, run }) => {
+    await run("set-DRE");
+    await run("compile");
+    const networkName = network.name;
+
+    const exchange = getParams(X2Y2, networkName)[0];
+    const downpayment = await getContractFromDB("Downpayment");
+    const adapter = await deployProxyContract("X2Y2Adapter", [downpayment.address, exchange], true);
+    waitForTx(await downpayment.addAdapter(adapter.address));
+    waitForTx(await downpayment.updateFee(adapter.address, fee));
   });
 
 task("deploy:seaportAdapter", "Deploy seaportAdapter")
