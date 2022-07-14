@@ -1,0 +1,368 @@
+/* eslint-disable node/no-extraneous-import */
+import { TypedDataDomain } from "@ethersproject/abstract-signer";
+import { Signature } from "@ethersproject/bytes";
+import { BigNumber, BigNumberish, Signer, utils, Wallet } from "ethers";
+import { findPrivateKey } from "../helpers/hardhat-keys";
+import { X2Y2Order, Fee, RunInput, SettleDetail, X2Y2OrderItem } from "@x2y2-io/sdk/src/types";
+import { DELEGATION_TYPE_ERC721, INTENT_SELL, OP_COMPLETE_SELL_OFFER } from "@x2y2-io/sdk";
+import { latest } from "../helpers/block-traveller";
+// import { _TypedDataEncoder } from "@ethersproject/hash";
+
+const orderItemParamType = `tuple(uint256 price, bytes data)`;
+const orderParamTypes = [
+  `uint256`,
+  `address`,
+  `uint256`,
+  `uint256`,
+  `uint256`,
+  `uint256`,
+  `address`,
+  `bytes`,
+  `uint256`,
+  `${orderItemParamType}[]`,
+];
+const feeParamType = `tuple(uint256 percentage, address to)`;
+const settleDetailParamType = `tuple(uint8 op, uint256 orderIdx, uint256 itemIdx, uint256 price, bytes32 itemHash, address executionDelegate, bytes dataReplacement, uint256 bidIncentivePct, uint256 aucMinIncrementPct, uint256 aucIncDurationSecs, ${feeParamType}[] fees)`;
+const settleSharedParamType = `tuple(uint256 salt, uint256 deadline, uint256 amountToEth, uint256 amountToWeth, address user, bool canFail)`;
+
+export const EIP_712_PARAM_TYPE = {
+  Params: [
+    { name: "orders", type: "Order[]" },
+    { name: "details", type: "SettleDetail[]" },
+    { name: "shared", type: "SettleShared" },
+    { name: "r", type: "bytes32" },
+    { name: "s", type: "bytes32" },
+    { name: "v", type: "uint8" },
+    { name: "nonce", type: "uint256" },
+  ],
+  Order: [
+    { name: "salt", type: "uint256" },
+    { name: "user", type: "address" },
+    { name: "network", type: "uint256" },
+    { name: "intent", type: "uint256" },
+    { name: "delegateType", type: "uint256" },
+    { name: "deadline", type: "uint256" },
+    { name: "currency", type: "address" },
+    { name: "dataMask", type: "bytes" },
+    { name: "items", type: "OrderItem[]" },
+    { name: "r", type: "bytes32" },
+    { name: "s", type: "bytes32" },
+    { name: "v", type: "uint8" },
+    { name: "signVersion", type: "uint8" },
+  ],
+  OrderItem: [
+    { name: "price", type: "uint256" },
+    { name: "data", type: "bytes" },
+  ],
+  SettleDetail: [
+    { name: "op", type: "uint8" },
+    { name: "orderIdx", type: "uint256" },
+    { name: "itemIdx", type: "uint256" },
+    { name: "price", type: "uint256" },
+    { name: "itemHash", type: "bytes32" },
+    { name: "executionDelegate", type: "address" },
+    { name: "dataReplacement", type: "bytes" },
+    { name: "bidIncentivePct", type: "uint256" },
+    { name: "aucMinIncrementPct", type: "uint256" },
+    { name: "aucIncDurationSecs", type: "uint256" },
+    { name: "fees", type: "Fee[]" },
+  ],
+  Fee: [
+    { name: "percentage", type: "uint256" },
+    { name: "to", type: "address" },
+  ],
+  SettleShared: [
+    { name: "salt", type: "uint256" },
+    { name: "deadline", type: "uint256" },
+    { name: "amountToEth", type: "uint256" },
+    { name: "amountToWeth", type: "uint256" },
+    { name: "user", type: "address" },
+    { name: "canFail", type: "bool" },
+  ],
+};
+const EXCHANGE_ADAPTER_NAME = "X2Y2 Downpayment Adapter";
+const EXCHANGE_ADAPTER_VERSION = "1.0";
+
+const { defaultAbiCoder, keccak256 } = utils;
+
+// let type = _TypedDataEncoder.from(EIP_712_PARAM_TYPE);
+// console.log(type.encodeType("Params"));
+
+export type Pair721 = {
+  token: string;
+  tokenId: BigNumberish;
+};
+
+export function randomSalt(): string {
+  const randomHex = BigNumber.from(utils.randomBytes(16)).toHexString();
+  return utils.hexZeroPad(randomHex, 64);
+}
+
+export function encodeItemData(data: Pair721[]): string {
+  return utils.defaultAbiCoder.encode(["tuple(address token, uint256 tokenId)[]"], [data]);
+}
+
+function makeSellOrder(
+  chainId: number,
+  user: string,
+  expirationTime: BigNumber,
+  items: { price: BigNumber; data: string }[],
+  currency: string
+): X2Y2Order {
+  const salt = randomSalt();
+  return {
+    salt,
+    user,
+    network: chainId,
+    intent: INTENT_SELL,
+    delegateType: DELEGATION_TYPE_ERC721,
+    deadline: expirationTime,
+    currency: currency,
+    dataMask: "0x",
+    items,
+    r: "",
+    s: "",
+    v: 0,
+    signVersion: 1,
+  };
+}
+
+export declare type CreateOrderInput = {
+  chainId: number;
+  signer: Signer;
+  tokenAddress: string;
+  tokenId: number;
+  price: BigNumber;
+  currency: string;
+  expirationTime: BigNumber;
+};
+
+async function signOrder(signer: Signer, order: X2Y2Order): Promise<void> {
+  const orderData: string = utils.defaultAbiCoder.encode(orderParamTypes, [
+    order.salt,
+    order.user,
+    order.network,
+    order.intent,
+    order.delegateType,
+    order.deadline,
+    order.currency,
+    order.dataMask,
+    order.items.length,
+    order.items,
+  ]);
+  const orderHash = utils.keccak256(orderData);
+  // signMessage
+  const orderSig = await signer.signMessage(utils.arrayify(orderHash));
+  order.r = `0x${orderSig.slice(2, 66)}`;
+  order.s = `0x${orderSig.slice(66, 130)}`;
+  order.v = parseInt(orderSig.slice(130, 132), 16);
+  fixSignature(order);
+}
+
+function fixSignature<T extends { v: number }>(data: T) {
+  // in geth its always 27/28, in ganache its 0/1. Change to 27/28 to prevent
+  // signature malleability if version is 0/1
+  // see https://github.com/ethereum/go-ethereum/blob/v1.8.23/internal/ethapi/api.go#L465
+  if (data.v < 27) {
+    data.v = data.v + 27;
+  }
+}
+
+export const createOrder = async ({
+  chainId,
+  signer,
+  tokenAddress,
+  tokenId,
+  price,
+  currency,
+  expirationTime,
+}: CreateOrderInput): Promise<X2Y2Order> => {
+  const accountAddress = await signer.getAddress();
+
+  const data = encodeItemData([{ token: tokenAddress, tokenId }]);
+  const order: X2Y2Order = makeSellOrder(chainId, accountAddress, expirationTime, [{ price, data }], currency);
+  await signOrder(signer, order);
+  return order;
+};
+
+export const hashItem = (order: X2Y2Order, item: X2Y2OrderItem): string => {
+  return keccak256(
+    defaultAbiCoder.encode(
+      [
+        "uint256",
+        "address",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256",
+        "address",
+        "bytes",
+        "(uint256 price, bytes data)",
+      ],
+      [
+        order.salt,
+        order.user,
+        order.network,
+        order.intent,
+        order.delegateType,
+        order.deadline,
+        order.currency,
+        order.dataMask,
+        [item.price, item.data],
+      ]
+    )
+  );
+};
+
+export const hashRuninput = (input: RunInput): string => {
+  const length = input.details.length;
+  const details = input.details.map((i) => [
+    i.op,
+    i.orderIdx,
+    i.itemIdx,
+    i.price,
+    i.itemHash,
+    i.executionDelegate,
+    i.dataReplacement,
+    i.bidIncentivePct,
+    i.aucMinIncrementPct,
+    i.aucIncDurationSecs,
+    i.fees.map((j) => [j.percentage, j.to]),
+  ]);
+  return keccak256(
+    defaultAbiCoder.encode(
+      [`${settleSharedParamType}`, "uint256", `${settleDetailParamType}[]`],
+      [
+        [
+          input.shared.salt,
+          input.shared.deadline,
+          input.shared.amountToEth,
+          input.shared.amountToWeth,
+          input.shared.user,
+          input.shared.canFail,
+        ],
+        length,
+        details,
+      ]
+    )
+  );
+};
+
+export const createRunput = async (
+  signerAddress: string,
+  delegate: string,
+  order: X2Y2Order,
+  taker: string,
+  fees: Fee[]
+): Promise<RunInput> => {
+  const detail: SettleDetail = {
+    op: OP_COMPLETE_SELL_OFFER,
+    orderIdx: 0,
+    itemIdx: 0,
+    price: order.items[0].price,
+    itemHash: hashItem(order, order.items[0]),
+    executionDelegate: delegate,
+    bidIncentivePct: 0,
+    aucMinIncrementPct: 0,
+    aucIncDurationSecs: 0,
+    dataReplacement: "0x",
+    fees: fees,
+  };
+  const shared = {
+    amountToEth: 0,
+    amountToWeth: 0,
+    deadline: (await latest()) + 1000,
+    salt: randomSalt(),
+    user: taker,
+    canFail: false,
+  };
+  const input: RunInput = {
+    orders: [order],
+    details: [detail],
+    shared,
+    r: "",
+    s: "",
+    v: 0,
+  };
+  const hash: string = hashRuninput(input);
+  const signer = new Wallet(await findPrivateKey(signerAddress));
+  const sig: Signature = signer._signingKey().signDigest(hash);
+  input.r = sig.r;
+  input.s = sig.s;
+  input.v = sig.v;
+  return input;
+};
+
+export const signParams = async (
+  chainId: number,
+  signerAddress: string,
+  verifyingContract: string,
+  input: RunInput,
+  nonce: BigNumber
+): Promise<Signature> => {
+  const domainData: TypedDataDomain = {
+    name: EXCHANGE_ADAPTER_NAME,
+    version: EXCHANGE_ADAPTER_VERSION,
+    chainId,
+    verifyingContract,
+  };
+  const signer = new Wallet(await findPrivateKey(signerAddress));
+  const value = { ...input, nonce };
+  const signature = await signer._signTypedData(domainData, EIP_712_PARAM_TYPE, value);
+  return utils.splitSignature(signature);
+};
+
+export interface DataWithSignature {
+  data: string;
+  sig: Signature;
+}
+
+export async function createSignedFlashloanParams(
+  chainId: number,
+  signerAddress: string,
+  verifyingContract: string,
+  input: RunInput,
+  nonce: BigNumber
+): Promise<DataWithSignature> {
+  const sig: Signature = await signParams(chainId, signerAddress, verifyingContract, input, nonce);
+  const orders = input.orders.map((order) => [
+    order.salt,
+    order.user,
+    order.network,
+    order.intent,
+    order.delegateType,
+    order.deadline,
+    order.currency,
+    order.dataMask,
+    order.items.map((item) => [item.price, item.data]),
+    order.r,
+    order.s,
+    order.v,
+    order.signVersion,
+  ]);
+  const details = input.details.map((detail) => [
+    detail.op,
+    detail.orderIdx,
+    detail.itemIdx,
+    detail.price,
+    detail.itemHash,
+    detail.executionDelegate,
+    detail.dataReplacement,
+    detail.bidIncentivePct,
+    detail.aucMinIncrementPct,
+    detail.aucIncDurationSecs,
+    detail.fees.map((fee) => [fee.percentage, fee.to]),
+  ]);
+  const shared = [
+    input.shared.salt,
+    input.shared.deadline,
+    input.shared.amountToEth,
+    input.shared.amountToWeth,
+    input.shared.user,
+    input.shared.canFail,
+  ];
+  const type =
+    "((uint256,address,uint256,uint256,uint256,uint256,address,bytes,(uint256,bytes)[],bytes32,bytes32,uint8,uint8)[],(uint8,uint256,uint256,uint256,bytes32,address,bytes,uint256,uint256,uint256,(uint256,address)[])[],(uint256,uint256,uint256,uint256,address,bool),bytes32,bytes32,uint8)";
+  const data = defaultAbiCoder.encode([type], [[orders, details, shared, input.r, input.s, input.v]]);
+  return { data, sig };
+}

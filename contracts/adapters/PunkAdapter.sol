@@ -54,6 +54,7 @@ contract PunkAdapter is BaseAdapter {
             BaseParams({
                 nftAsset: address(wrappedPunks),
                 nftTokenId: _orderParams.punkIndex,
+                currency: address(0),
                 salePrice: _sellOffer.minValue,
                 paramsHash: _hashParams(_orderParams, _nonce)
             });

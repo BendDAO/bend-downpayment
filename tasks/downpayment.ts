@@ -1,7 +1,17 @@
+/* eslint-disable node/no-unsupported-features/es-syntax */
 import { BigNumber, constants } from "ethers";
 import { defaultAbiCoder, parseEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
-import { BendExchange, BendProtocol, getParams, OpenseaExchange, PunkMarket, Seaport, WETH } from "../test/config";
+import {
+  BendExchange,
+  BendProtocol,
+  getParams,
+  OpenseaExchange,
+  PunkMarket,
+  Seaport,
+  WETH,
+  X2Y2,
+} from "../test/config";
 import {
   Downpayment,
   ERC721,
@@ -18,6 +28,10 @@ import * as opensea from "../test/signer/opensea";
 import * as punk from "../test/signer/punk";
 import * as seaport from "../test/signer/seaport";
 import { findPrivateKey } from "../test/helpers/hardhat-keys";
+
+import "dotenv/config";
+import * as x2y2Sdk from "./x2y2";
+import * as x2y2Api from "./x2y2/api";
 
 task("repay", "repay loan")
   .addParam("sender", "address of sender")
@@ -43,6 +57,99 @@ task("repay", "repay loan")
       waitForTx(await wethContract.connect(signer).approve(bendLendPool.address, constants.MaxUint256));
     }
     waitForTx(await bendLendPool.connect(signer).repay(nft, tokenid, constants.MaxUint256));
+  });
+
+task("list:x2y2", "list order in x2y2")
+  .addParam("maker", "address of maker")
+  .addParam("nft", "address of nft")
+  .addParam("tokenid", "token id of nft")
+  .addParam("price", "sell price of nft")
+  .setAction(async ({ maker, nft, tokenid, price }, { ethers, network, run }) => {
+    await run("set-DRE");
+    const chainId = await getChainId();
+    console.log(`chainId: ${chainId}`);
+    console.log(`maker: ${maker}`);
+    console.log(`nft: ${nft}`);
+    console.log(`tokenid: ${tokenid}`);
+    x2y2Sdk.init(process.env.X2Y2_KEY || "");
+    const config = getParams(X2Y2, network.name);
+    const delegate = config[1];
+    const makerSigner = new ethers.Wallet(await findPrivateKey(maker), ethers.provider);
+    price = parseEther(price);
+
+    const nftContract = await getContract("IERC721", nft);
+    const nftAllowance = await nftContract.isApprovedForAll(maker, delegate);
+    if (!nftAllowance) {
+      console.log("approve maker nft");
+      waitForTx(await nftContract.connect(makerSigner).setApprovalForAll(delegate, true));
+    }
+    const utils = await import("../test/helpers/block-traveller");
+    await x2y2Sdk.list({
+      network: "rinkeby",
+      signer: makerSigner,
+      tokenAddress: nft,
+      tokenId: tokenid,
+      price: price.toString(),
+      expirationTime: (await utils.latest()) + 6000,
+    });
+  });
+
+task("downpayment:x2y2", "downpayment with x2y2")
+  .addParam("taker", "address of taker")
+  .addParam("nft", "address of nft")
+  .addParam("tokenid", "token id of nft")
+  .addParam("price", "sell price of nft")
+  .setAction(async ({ taker, nft, tokenid, price }, { ethers, network, run }) => {
+    await run("set-DRE");
+    const chainId = await getChainId();
+    console.log(`chainId: ${chainId}`);
+    console.log(`taker: ${taker}`);
+    console.log(`nft: ${nft}`);
+    console.log(`tokenid: ${tokenid}`);
+    x2y2Sdk.init(process.env.X2Y2_KEY || "");
+    const adapter = await getContractAddressFromDB("X2Y2Adapter");
+    const downpayment = await getContractFromDB<Downpayment>("Downpayment");
+    const nonce = await downpayment.nonces(taker);
+
+    const takerSigner = new ethers.Wallet(await findPrivateKey(taker), ethers.provider);
+    price = parseEther(price);
+
+    const weth = getParams(WETH, network.name);
+
+    const bendProtocolParams = getParams(BendProtocol, network.name);
+
+    const bendAddressesProvider = await getContract<ILendPoolAddressesProvider>(
+      "ILendPoolAddressesProvider",
+      bendProtocolParams[0]
+    );
+    const bendLendPool = await getContract("ILendPool", await bendAddressesProvider.getLendPool());
+    const debtWETH = await getContract("IDebtToken", bendProtocolParams[2]);
+    const nftCollateralData = await bendLendPool.getNftCollateralData(nft, weth);
+    const borrowAmount = nftCollateralData.availableBorrowsInReserve.sub(1);
+    console.log(`borrow amount: ${borrowAmount.toString()}`);
+
+    // check allowance
+    const wethContract = await getContract("IWETH", weth);
+    const allowance = await wethContract.allowance(taker, adapter);
+    if (allowance.lt(price)) {
+      console.log("approve taker weth");
+      waitForTx(await wethContract.connect(takerSigner).approve(adapter, constants.MaxUint256));
+      console.log("approve taker debtWETH");
+      waitForTx(await debtWETH.connect(takerSigner).approveDelegation(adapter, constants.MaxUint256));
+    }
+
+    const api = x2y2Api.getSharedAPIClient("rinkeby");
+    const order = await api.getSellOrder("", nft, tokenid);
+    if (!order || order.price !== price.toString()) throw new Error("No order found");
+    const runInput = await api.fetchOrderSign(adapter, 1, order.id, order.currency, order.price, tokenid);
+    if (!runInput) throw new Error("No runInput found");
+    const x2y2 = await import("../test/signer/x2y2");
+    const dataWithsig = await x2y2.createSignedFlashloanParams(chainId, taker, adapter, runInput, nonce);
+    waitForTx(
+      await downpayment
+        .connect(takerSigner)
+        .buy(adapter, borrowAmount, dataWithsig.data, dataWithsig.sig, { value: price.sub(borrowAmount) })
+    );
   });
 
 task("downpayment:bendExchange", "downpayment with bend exchange")

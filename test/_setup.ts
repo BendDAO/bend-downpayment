@@ -27,6 +27,8 @@ import {
   LooksRareExchangeAdapter,
   SeaportAdapter,
   ISeaport,
+  X2Y2Adapter,
+  IX2Y2,
 } from "../typechain-types";
 import {
   getParams,
@@ -38,6 +40,7 @@ import {
   BAYC,
   LooksRareExchange,
   Seaport,
+  X2Y2,
 } from "./config";
 import { waitForTx } from "../tasks/utils/helpers";
 import { constants } from "ethers";
@@ -72,6 +75,7 @@ export interface Contracts {
   proxyRegistry: IOpenseaRegistry;
   authorizationManager: IAuthorizationManager;
   seaportExchange: ISeaport;
+  x2y2Exchange: IX2Y2;
 
   // adapters
   punkAdapter: PunkAdapter;
@@ -79,6 +83,7 @@ export interface Contracts {
   bendExchangeAdapter: BendExchangeAdapter;
   looksRareExchangeAdapter: LooksRareExchangeAdapter;
   seaportAdapter: SeaportAdapter;
+  x2y2Adapter: X2Y2Adapter;
 
   // aave
   aaveLendPool: IAaveLendPool;
@@ -115,12 +120,14 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
   waitForTx(await contracts.downpayment.addAdapter(contracts.bendExchangeAdapter.address));
   waitForTx(await contracts.downpayment.addAdapter(contracts.looksRareExchangeAdapter.address));
   waitForTx(await contracts.downpayment.addAdapter(contracts.seaportAdapter.address));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.x2y2Adapter.address));
 
   waitForTx(await contracts.downpayment.updateFee(contracts.punkAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.openseaAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.bendExchangeAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.looksRareExchangeAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.seaportAdapter.address, env.fee));
+  waitForTx(await contracts.downpayment.updateFee(contracts.x2y2Adapter.address, env.fee));
 
   // add reserve balance for bend
   waitForTx(await contracts.weth.connect(env.admin).approve(contracts.bendLendPool.address, constants.MaxUint256));
@@ -140,6 +147,7 @@ export async function setupContracts(): Promise<Contracts> {
   const bendExchangeParams = getParams(BendExchange, networkName);
   const looksRareExchangeParams = getParams(LooksRareExchange, networkName);
   const seaportParams = getParams(Seaport, networkName);
+  const x2y2Params = getParams(X2Y2, networkName);
 
   // weth
   const weth = await ethers.getContractAt("IWETH", getParams(WETH, networkName));
@@ -167,6 +175,7 @@ export async function setupContracts(): Promise<Contracts> {
     await looksRareExchange.transferSelectorNFT()
   );
   const seaportExchange = await ethers.getContractAt("ISeaport", seaportParams[0]);
+  const x2y2Exchange = await ethers.getContractAt("IX2Y2", x2y2Params[0]);
 
   // aave
   // we mock aave due to no rinkeby addresses
@@ -220,6 +229,11 @@ export async function setupContracts(): Promise<Contracts> {
   await seaportAdapter.deployed();
   await seaportAdapter.initialize(downpayment.address, seaportExchange.address, seaportParams[3]);
 
+  const X2Y2Adapter = await ethers.getContractFactory("X2Y2Adapter");
+  const x2y2Adapter = await X2Y2Adapter.deploy();
+  await x2y2Adapter.deployed();
+  await x2y2Adapter.initialize(downpayment.address, x2y2Exchange.address);
+
   /** Return contracts
    */
   return {
@@ -234,6 +248,8 @@ export async function setupContracts(): Promise<Contracts> {
     bayc,
     bBAYC,
     bWPUNK,
+    x2y2Adapter,
+    x2y2Exchange,
     seaportAdapter,
     punkMarket,
     wrappedPunk,

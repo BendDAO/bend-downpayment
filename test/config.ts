@@ -113,3 +113,12 @@ export const Seaport: Params<string[]> = {
     "0x00000000F9490004C11Cef243f5400493c00Ad63", // ConduitController
   ],
 };
+
+export const X2Y2: Params<string[]> = {
+  [Network.rinkeby]: [
+    "0x98ecc977f7a0ebebec6d01d63e87eeeefe9456b4", // X2Y2
+    "0x88532a901475B3DdF370386AE22C2067846f7D7a", // ERC721Delegate
+    "0xc84cd8960d7227320e96343e5694b6707fe92b6f", // owner
+  ],
+  [Network.main]: [],
+};

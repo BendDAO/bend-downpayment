@@ -2,6 +2,7 @@
 import { constants, Contract, ContractReceipt, ContractTransaction, Signer } from "ethers";
 import { verifyEtherscanContract } from "./verification";
 import { DRE, DB } from "./DRE";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export const waitForTx = async (tx: ContractTransaction): Promise<ContractReceipt> => await tx.wait(1);
 
@@ -91,4 +92,15 @@ export const getContract = async <ContractType extends Contract>(
 
 export const getContractFromDB = async <ContractType extends Contract>(id: string): Promise<ContractType> => {
   return getContract(id, await getContractAddressFromDB(id));
+};
+
+export const impersonateAccountsHardhat = async (accounts: string[]): Promise<void> => {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const account of accounts) {
+    // eslint-disable-next-line no-await-in-loop
+    await (DRE as HardhatRuntimeEnvironment).network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [account],
+    });
+  }
 };
