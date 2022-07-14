@@ -2,7 +2,16 @@
 import { BigNumber, constants } from "ethers";
 import { defaultAbiCoder, parseEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
-import { BendExchange, BendProtocol, getParams, OpenseaExchange, PunkMarket, Seaport, WETH } from "../test/config";
+import {
+  BendExchange,
+  BendProtocol,
+  getParams,
+  OpenseaExchange,
+  PunkMarket,
+  Seaport,
+  WETH,
+  X2Y2,
+} from "../test/config";
 import {
   Downpayment,
   ERC721,
@@ -63,7 +72,7 @@ task("list:x2y2", "list order in x2y2")
     console.log(`nft: ${nft}`);
     console.log(`tokenid: ${tokenid}`);
     x2y2Sdk.init(process.env.X2Y2_KEY || "");
-    const config = getParams(BendExchange, network.name);
+    const config = getParams(X2Y2, network.name);
     const delegate = config[1];
     const makerSigner = new ethers.Wallet(await findPrivateKey(maker), ethers.provider);
     price = parseEther(price);
@@ -81,33 +90,27 @@ task("list:x2y2", "list order in x2y2")
       tokenAddress: nft,
       tokenId: tokenid,
       price: price.toString(),
-      expirationTime: (await utils.latest()) + 108000,
+      expirationTime: (await utils.latest()) + 6000,
     });
   });
 
 task("downpayment:x2y2", "downpayment with x2y2")
-  .addParam("maker", "address of maker")
   .addParam("taker", "address of taker")
   .addParam("nft", "address of nft")
   .addParam("tokenid", "token id of nft")
   .addParam("price", "sell price of nft")
-  .setAction(async ({ maker, taker, nft, tokenid, price }, { ethers, network, run }) => {
+  .setAction(async ({ taker, nft, tokenid, price }, { ethers, network, run }) => {
     await run("set-DRE");
     const chainId = await getChainId();
     console.log(`chainId: ${chainId}`);
-    console.log(`maker: ${maker}`);
     console.log(`taker: ${taker}`);
     console.log(`nft: ${nft}`);
     console.log(`tokenid: ${tokenid}`);
-
-    const config = getParams(BendExchange, network.name);
-    const delegate = config[1];
-
+    x2y2Sdk.init(process.env.X2Y2_KEY || "");
     const adapter = await getContractAddressFromDB("X2Y2Adapter");
     const downpayment = await getContractFromDB<Downpayment>("Downpayment");
     const nonce = await downpayment.nonces(taker);
 
-    const makerSigner = new ethers.Wallet(await findPrivateKey(maker), ethers.provider);
     const takerSigner = new ethers.Wallet(await findPrivateKey(taker), ethers.provider);
     price = parseEther(price);
 
@@ -135,21 +138,18 @@ task("downpayment:x2y2", "downpayment with x2y2")
       waitForTx(await debtWETH.connect(takerSigner).approveDelegation(adapter, constants.MaxUint256));
     }
 
-    const nftContract = await getContract("IERC721", nft);
-    const nftAllowance = await nftContract.isApprovedForAll(maker, delegate);
-    if (!nftAllowance) {
-      console.log("approve maker nft");
-      waitForTx(await nftContract.connect(makerSigner).setApprovalForAll(delegate, true));
-    }
-
     const api = x2y2Api.getSharedAPIClient("rinkeby");
     const order = await api.getSellOrder("", nft, tokenid);
-    if (!order || order.price !== price) throw new Error("No order found");
-    const runInput = await api.fetchOrderSign(taker, 1, order.id, order.currency, order.price, tokenid);
+    if (!order || order.price !== price.toString()) throw new Error("No order found");
+    const runInput = await api.fetchOrderSign(adapter, 1, order.id, order.currency, order.price, tokenid);
     if (!runInput) throw new Error("No runInput found");
     const x2y2 = await import("../test/signer/x2y2");
     const dataWithsig = await x2y2.createSignedFlashloanParams(chainId, taker, adapter, runInput, nonce);
-    waitForTx(await downpayment.connect(takerSigner).buy(adapter, borrowAmount, dataWithsig.data, dataWithsig.sig));
+    waitForTx(
+      await downpayment
+        .connect(takerSigner)
+        .buy(adapter, borrowAmount, dataWithsig.data, dataWithsig.sig, { value: price.sub(borrowAmount) })
+    );
   });
 
 task("downpayment:bendExchange", "downpayment with bend exchange")

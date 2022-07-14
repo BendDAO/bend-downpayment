@@ -5,3 +5,4 @@ coverage*
 gasReporterOutput.json
 typechain
 .history
+tasks/x2y2
