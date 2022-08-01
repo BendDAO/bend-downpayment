@@ -57,11 +57,9 @@ makeSuite("X2Y2Adapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     waitForTx(await contracts.weth.connect(buyer).approve(exchange.address, constants.MaxUint256));
 
     // add new run input signer
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [exchangeOwner],
-    });
-    waitForTx(await exchange.connect(await ethers.getSigner(exchangeOwner)).updateSigners([env.admin.address], []));
+    waitForTx(
+      await exchange.connect(await ethers.getImpersonatedSigner(exchangeOwner)).updateSigners([env.admin.address], [])
+    );
 
     const nftCollateralData = await contracts.bendLendPool.getNftCollateralData(nft.address, contracts.weth.address);
     borrowAmount = nftCollateralData.availableBorrowsInReserve.sub(1);
