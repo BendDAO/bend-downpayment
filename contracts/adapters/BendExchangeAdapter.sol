@@ -16,29 +16,6 @@ contract BendExchangeAdapter is BaseAdapter {
     IBendExchange public bendExchange;
     address private proxy;
 
-    struct Params {
-        // maker order
-        bool isOrderAsk;
-        address maker;
-        address collection;
-        uint256 price;
-        uint256 tokenId;
-        uint256 amount;
-        address strategy;
-        address currency;
-        uint256 nonce;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 minPercentageToAsk;
-        bytes params;
-        address interceptor;
-        bytes interceptorExtra;
-        // maker sig
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-    }
-
     function initialize(address _downpayment, address _bendExchange) external initializer {
         __BaseAdapter_init(NAME, VERSION, _downpayment);
 
@@ -53,7 +30,7 @@ contract BendExchangeAdapter is BaseAdapter {
         bytes memory _params,
         uint256 _nonce
     ) internal view override returns (BaseParams memory) {
-        Params memory _orderParams = _decodeParams(_params);
+        IBendExchange.MakerOrder memory _orderParams = _decodeParams(_params);
 
         // Check order params
         require(_orderParams.isOrderAsk, "Adapter: maker must ask order");
@@ -71,7 +48,7 @@ contract BendExchangeAdapter is BaseAdapter {
             });
     }
 
-    function _hashParams(Params memory _orderParams, uint256 _nonce) internal pure returns (bytes32) {
+    function _hashParams(IBendExchange.MakerOrder memory _orderParams, uint256 _nonce) internal pure returns (bytes32) {
         return
             keccak256(
                 bytes.concat(
@@ -104,45 +81,25 @@ contract BendExchangeAdapter is BaseAdapter {
     }
 
     function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
-        Params memory _orderParams = _decodeParams(_params);
+        IBendExchange.MakerOrder memory makerAsk = _decodeParams(_params);
         IBendExchange.TakerOrder memory takerBid;
         {
             takerBid.isOrderAsk = false;
             takerBid.taker = address(this);
-            takerBid.price = _orderParams.price;
-            takerBid.tokenId = _orderParams.tokenId;
+            takerBid.price = makerAsk.price;
+            takerBid.tokenId = makerAsk.tokenId;
             takerBid.minPercentageToAsk = 0;
             takerBid.params = new bytes(0);
             takerBid.interceptor = address(0);
             takerBid.interceptorExtra = new bytes(0);
         }
-        IBendExchange.MakerOrder memory makerAsk;
-        {
-            makerAsk.isOrderAsk = _orderParams.isOrderAsk;
-            makerAsk.maker = _orderParams.maker;
-            makerAsk.collection = _orderParams.collection;
-            makerAsk.price = _orderParams.price;
-            makerAsk.tokenId = _orderParams.tokenId;
-            makerAsk.amount = _orderParams.amount;
-            makerAsk.strategy = _orderParams.strategy;
-            makerAsk.currency = _orderParams.currency;
-            makerAsk.nonce = _orderParams.nonce;
-            makerAsk.startTime = _orderParams.startTime;
-            makerAsk.endTime = _orderParams.endTime;
-            makerAsk.minPercentageToAsk = _orderParams.minPercentageToAsk;
-            makerAsk.params = _orderParams.params;
-            makerAsk.interceptor = _orderParams.interceptor;
-            makerAsk.interceptorExtra = _orderParams.interceptorExtra;
-            makerAsk.v = _orderParams.v;
-            makerAsk.r = _orderParams.r;
-            makerAsk.s = _orderParams.s;
-        }
+
         downpayment.WETH().approve(proxy, _baseParams.salePrice);
         bendExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
         downpayment.WETH().approve(proxy, 0);
     }
 
-    function _decodeParams(bytes memory _params) internal pure returns (Params memory) {
-        return abi.decode(_params, (Params));
+    function _decodeParams(bytes memory _params) internal pure returns (IBendExchange.MakerOrder memory) {
+        return abi.decode(_params, (IBendExchange.MakerOrder));
     }
 }

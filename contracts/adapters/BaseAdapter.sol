@@ -40,7 +40,6 @@ abstract contract BaseAdapter is
         __ReentrancyGuard_init();
         __EIP712_init(_name, _version);
         downpayment = IDownpayment(_downpayment);
-        downpayment.WETH().approve(address(downpayment.getBendLendPool()), type(uint256).max);
     }
 
     struct BaseParams {
@@ -126,7 +125,9 @@ abstract contract BaseAdapter is
         vars.flashLoanDebt = vars.flashBorrowedAmount + vars.flashFee;
 
         // Prepare ETH, need buyer approve WETH to this contract
-        IERC20Upgradeable(address(WETH)).safeTransferFrom(vars.buyer, address(this), vars.buyerPayment);
+        if (vars.buyerPayment > 0) {
+            IERC20Upgradeable(address(WETH)).safeTransferFrom(vars.buyer, address(this), vars.buyerPayment);
+        }
 
         // Do exchange
         _exchange(baseParams, vars.params);
@@ -156,6 +157,7 @@ abstract contract BaseAdapter is
 
     function _chargeFee(address _payer, uint256 _amount) internal {
         if (_amount > 0) {
+            downpayment.WETH().approve(address(downpayment.getBendLendPool()), _amount);
             downpayment.getBendLendPool().deposit(
                 address(downpayment.WETH()),
                 _amount,
@@ -163,6 +165,7 @@ abstract contract BaseAdapter is
                 0
             );
             emit FeeCharged(_payer, address(this), _amount);
+            downpayment.WETH().approve(address(downpayment.getBendLendPool()), 0);
         }
     }
 

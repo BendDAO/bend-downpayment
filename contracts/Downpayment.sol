@@ -34,7 +34,7 @@ contract Downpayment is Ownable, ReentrancyGuard, IDownpayment {
     event FeeUpdated(address indexed adapter, uint256 indexed newFee);
 
     mapping(address => Counters.Counter) internal _nonces;
-    mapping(address => uint256) public fees;
+    mapping(address => uint256) private fees;
 
     modifier onlyWhitelisted(address adapter) {
         require(_whitelistedAdapters.contains(adapter), "Adapter: not whitelisted");

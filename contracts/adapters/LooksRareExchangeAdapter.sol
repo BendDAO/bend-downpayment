@@ -15,27 +15,6 @@ contract LooksRareExchangeAdapter is BaseAdapter {
 
     ILooksRareExchange public looksRareExchange;
 
-    struct Params {
-        // maker order
-        bool isOrderAsk;
-        address maker;
-        address collection;
-        uint256 price;
-        uint256 tokenId;
-        uint256 amount;
-        address strategy;
-        address currency;
-        uint256 nonce;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 minPercentageToAsk;
-        bytes params;
-        // maker sig
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-    }
-
     function initialize(address _downpayment, address _looksRareExchange) external initializer {
         __BaseAdapter_init(NAME, VERSION, _downpayment);
         looksRareExchange = ILooksRareExchange(_looksRareExchange);
@@ -48,7 +27,7 @@ contract LooksRareExchangeAdapter is BaseAdapter {
         bytes memory _params,
         uint256 _nonce
     ) internal view override returns (BaseParams memory) {
-        Params memory _orderParams = _decodeParams(_params);
+        ILooksRareExchange.MakerOrder memory _orderParams = _decodeParams(_params);
 
         // Check order params
         require(_orderParams.isOrderAsk, "Adapter: maker must ask order");
@@ -63,7 +42,11 @@ contract LooksRareExchangeAdapter is BaseAdapter {
             });
     }
 
-    function _hashParams(Params memory _orderParams, uint256 _nonce) internal pure returns (bytes32) {
+    function _hashParams(ILooksRareExchange.MakerOrder memory _orderParams, uint256 _nonce)
+        internal
+        pure
+        returns (bytes32)
+    {
         return
             keccak256(
                 bytes.concat(
@@ -88,41 +71,22 @@ contract LooksRareExchangeAdapter is BaseAdapter {
     }
 
     function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
-        Params memory _orderParams = _decodeParams(_params);
+        ILooksRareExchange.MakerOrder memory makerAsk = _decodeParams(_params);
         ILooksRareExchange.TakerOrder memory takerBid;
         {
             takerBid.isOrderAsk = false;
             takerBid.taker = address(this);
-            takerBid.price = _orderParams.price;
-            takerBid.tokenId = _orderParams.tokenId;
+            takerBid.price = makerAsk.price;
+            takerBid.tokenId = makerAsk.tokenId;
             takerBid.minPercentageToAsk = 0;
             takerBid.params = new bytes(0);
-        }
-        ILooksRareExchange.MakerOrder memory makerAsk;
-        {
-            makerAsk.isOrderAsk = _orderParams.isOrderAsk;
-            makerAsk.maker = _orderParams.maker;
-            makerAsk.collection = _orderParams.collection;
-            makerAsk.price = _orderParams.price;
-            makerAsk.tokenId = _orderParams.tokenId;
-            makerAsk.amount = _orderParams.amount;
-            makerAsk.strategy = _orderParams.strategy;
-            makerAsk.currency = _orderParams.currency;
-            makerAsk.nonce = _orderParams.nonce;
-            makerAsk.startTime = _orderParams.startTime;
-            makerAsk.endTime = _orderParams.endTime;
-            makerAsk.minPercentageToAsk = _orderParams.minPercentageToAsk;
-            makerAsk.params = _orderParams.params;
-            makerAsk.v = _orderParams.v;
-            makerAsk.r = _orderParams.r;
-            makerAsk.s = _orderParams.s;
         }
         downpayment.WETH().approve(address(looksRareExchange), _baseParams.salePrice);
         looksRareExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
         downpayment.WETH().approve(address(looksRareExchange), 0);
     }
 
-    function _decodeParams(bytes memory _params) internal pure returns (Params memory) {
-        return abi.decode(_params, (Params));
+    function _decodeParams(bytes memory _params) internal pure returns (ILooksRareExchange.MakerOrder memory) {
+        return abi.decode(_params, (ILooksRareExchange.MakerOrder));
     }
 }
