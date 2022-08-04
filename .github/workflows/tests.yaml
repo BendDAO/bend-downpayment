@@ -34,6 +34,8 @@ jobs:
       - name: Install dev dependencies
         run: yarn install --frozen-lockfile
       - name: Compile code (Hardhat)
+        run: yarn compile
+      - name: Force Compile code (Hardhat)
         run: yarn compile:force
       - name: Run TypeScript/Waffle tests
         run: yarn test
