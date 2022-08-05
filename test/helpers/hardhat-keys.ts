@@ -1,4 +1,7 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable node/no-missing-import */
+
 /**
  * WARNING!! DO NOT USE IN PRODUCTION OR WITH ANY FUNDS.
  * THESE PUBLIC/PRIVATE KEYS COME FROM HARDHAT AND ARE PUBLICLY KNOWN.
@@ -25,6 +28,7 @@ export async function findPrivateKey(publicKey: string): Promise<string> {
 
     default:
       try {
+        // @ts-ignore
         const keys = await import("../../keys");
         return keys.findPrivateKey(publicKey);
       } catch (error) {
