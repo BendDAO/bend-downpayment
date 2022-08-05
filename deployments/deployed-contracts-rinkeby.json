@@ -1,6 +1,6 @@
 {
   "Downpayment": {
-    "address": "0xE91B922B2009D5b0A309017d9EE559059507eb37",
+    "address": "0xFeF524B113c112B42B5a081217F7006973408579",
     "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
   },
   "BendExchangeAdapter": {
@@ -8,7 +8,7 @@
     "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
   },
   "LooksRareExchangeAdapter": {
-    "address": "0x446A65cAB16F097C17501Ba5448462c2bDe1c5d0",
+    "address": "0x228DF03DDF0cDb52C9c411c10555C42cF0168F81",
     "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
   },
   "OpenseaAdapter": {

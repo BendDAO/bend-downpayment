@@ -196,13 +196,14 @@ export async function setupContracts(): Promise<Contracts> {
 
   // downpayment
   const Downpayment = await ethers.getContractFactory("Downpayment");
-  const downpayment = await Downpayment.deploy(
+  const downpayment = await Downpayment.deploy();
+  await downpayment.deployed();
+  await downpayment.initialize(
     mockAaveLendPoolAddressesProvider.address,
     bendAddressesProvider.address,
     bendCollector.address,
     weth.address
   );
-  await downpayment.deployed();
 
   // adapters
   const OpenseaAdapter = await ethers.getContractFactory("OpenseaAdapter");

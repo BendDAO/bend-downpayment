@@ -16,6 +16,10 @@ makeSuite("downpayment", (contracts: Contracts, env: Env) => {
       "Adapter: not whitelisted"
     );
 
+    await expect(contracts.downpayment.connect(env.admin).setFeeCollector(constants.AddressZero)).to.be.revertedWith(
+      "Downpayment: feeCollector can not be null address"
+    );
+
     await expect(
       contracts.downpayment.connect(env.admin).updateFee(contracts.punkAdapter.address, 10001)
     ).to.be.revertedWith("Fee overflow");
@@ -31,9 +35,17 @@ makeSuite("downpayment", (contracts: Contracts, env: Env) => {
     await expect(
       contracts.downpayment.connect(env.accounts[2]).updateFee(constants.AddressZero, 100)
     ).to.be.revertedWith("Ownable: caller is not the owner");
+
+    await expect(
+      contracts.downpayment.connect(env.accounts[2]).setFeeCollector(constants.AddressZero)
+    ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 
   it("functions work as expected", async () => {
+    await contracts.downpayment.connect(env.admin).setFeeCollector(env.accounts[3].address);
+
+    expect(await contracts.downpayment.getFeeCollector()).to.be.equal(env.accounts[3].address);
+
     expect(await contracts.downpayment.isAdapterWhitelisted(contracts.weth.address)).to.be.false;
     await contracts.downpayment.connect(env.admin).addAdapter(contracts.weth.address);
     expect(await contracts.downpayment.isAdapterWhitelisted(contracts.weth.address)).to.be.true;
