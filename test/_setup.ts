@@ -122,7 +122,8 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
   waitForTx(await contracts.downpayment.addAdapter(contracts.seaportAdapter.address));
   waitForTx(await contracts.downpayment.addAdapter(contracts.x2y2Adapter.address));
 
-  waitForTx(await contracts.downpayment.updateFee(contracts.punkAdapter.address, env.fee));
+  waitForTx(await contracts.downpayment.updateFee(contracts.punkAdapter.address, 0)); // test zero fee
+
   waitForTx(await contracts.downpayment.updateFee(contracts.openseaAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.bendExchangeAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.looksRareExchangeAdapter.address, env.fee));

@@ -1,6 +1,7 @@
 /* eslint-disable node/no-extraneous-import */
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 /* eslint-disable  @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable  no-unused-expressions */
 import { expect } from "chai";
 import { BigNumber, constants, utils } from "ethers";
 import { Contracts, Env, makeSuite, Snapshots } from "../_setup";
@@ -187,5 +188,34 @@ makeSuite("X2Y2Adapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     });
     const input = await createRunput(env.admin.address, erc721Delegate, order, adapter.address, []);
     await exceptDownpaymentSuccessed(input, borrowAmount);
+  });
+
+  it("downpayment buy with ETH", async () => {
+    await approveBuyerWeth();
+    await approveBuyerDebtWeth();
+    const order = await createOrder({
+      chainId: env.chainId,
+      signer: seller,
+      tokenAddress: nft.address,
+      tokenId: tokenId,
+      price: sellPrice,
+      currency: weth.address,
+      expirationTime: now.add(500),
+    });
+    const input = await createRunput(env.admin.address, erc721Delegate, order, adapter.address, []);
+
+    const dataWithsig = await createSignedFlashloanParams(
+      env.chainId,
+      buyer.address,
+      adapter.address,
+      input,
+      adapterNonce
+    );
+
+    expect(
+      contracts.downpayment
+        .connect(buyer)
+        .buy(adapter.address, borrowAmount, dataWithsig.data, dataWithsig.sig, { value: sellPrice.sub(borrowAmount) })
+    ).to.be.ok;
   });
 });

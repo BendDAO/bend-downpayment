@@ -38,7 +38,8 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
 
   async function exceptDownpaymentSuccessed(price: BigNumber, borrowAmount: BigNumber) {
     const aaveFee = borrowAmount.mul(9).div(10000);
-    const bendFee = price.mul(env.fee).div(10000);
+    // const bendFee = price.mul(env.fee).div(10000);
+    const bendFee = 0;
     const paymentAmount = price.add(aaveFee).add(bendFee).sub(borrowAmount);
     const expectAaveWethBalance = (await contracts.weth.balanceOf(contracts.aaveLendPool.address)).add(aaveFee);
 
@@ -66,6 +67,7 @@ makeSuite("PunkAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
     expect(await contracts.bWPUNK.ownerOf(tokenId)).to.be.equal(buyer.address);
 
     expect(expectAaveWethBalance).to.be.equal(await contracts.weth.balanceOf(contracts.aaveLendPool.address));
+
     assertAlmostEqualTol(
       expectBendCollectorBWethBalance,
       await contracts.bWETH.balanceOf(contracts.bendCollector.address),

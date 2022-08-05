@@ -33,13 +33,13 @@ export const NETWORKS_RPC_URL: Params<string> = {
 };
 
 export const FeeCollector: Params<string> = {
-  [Network.rinkeby]: "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A",
+  [Network.rinkeby]: "0xab576dAab2F1eB5417E1064EaBDe801af934D0e7",
   [Network.main]: "",
 };
 
 export const AAVE: Params<string> = {
   [Network.rinkeby]: "0xF89Ac2d8885eaB06a4F16B1c769a011FCb09061A", // address provider
-  [Network.main]: "",
+  [Network.main]: "0xb53c1a33016b2dc2ff3653530bff1848a515c8c5", // address provider
 };
 
 export const WETH: Params<string> = {
@@ -52,7 +52,10 @@ export const PunkMarket: Params<string[]> = {
     "0x6389eA3Cf6dE815ba76d7Cf4C6Db6A7093471bcb", // PunkMarket
     "0x74e4418A41169Fb951Ca886976ccd8b36968c4Ab", // WrappedPunk
   ],
-  [Network.main]: [],
+  [Network.main]: [
+    "0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb", // PunkMarket
+    "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6", // WrappedPunk
+  ],
 };
 
 export const BAYC: Params<string> = {
@@ -65,7 +68,10 @@ export const OpenseaExchange: Params<string[]> = {
     "0xdd54d660178b28f6033a953b0e55073cfa7e3744", // OpenseaExchange
     "0x45B594792a5CDc008D0dE1C1d69FAA3D16B3DDc1", // MerkleValidator
   ],
-  [Network.main]: [],
+  [Network.main]: [
+    "0x7f268357A8c2552623316e2562D90e642bB538E5", // OpenseaExchange
+    "0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7", // MerkleValidator
+  ],
 };
 
 export const BendExchange: Params<string[]> = {
@@ -81,7 +87,10 @@ export const LooksRareExchange: Params<string[]> = {
     "0x1AA777972073Ff66DCFDeD85749bDD555C0665dA", // LooksRareExchange
     "0x732319A3590E4fA838C111826f9584a9A2fDEa1a", // StrategyStandardSaleForFixedPrice
   ],
-  [Network.main]: [],
+  [Network.main]: [
+    "0x59728544b08ab483533076417fbbb2fd0b17ce3a", // LooksRareExchange
+    "0x56244bb70cbd3ea9dc8007399f61dfc065190031", // StrategyStandardSaleForFixedPrice
+  ],
 };
 
 export const BendProtocol: Params<string[]> = {
@@ -94,7 +103,15 @@ export const BendProtocol: Params<string[]> = {
     "0x7fE857748dc8e335E3E94cAFE27a63d1F573dF45", // bBAYC
     "0x04af5eF6100E1025560Be50FF244CB31f60d08c2", // NFTOracle
   ],
-  [Network.main]: [],
+  [Network.main]: [
+    "0x24451f47caf13b24f4b5034e1df6c0e401ec0e46", // addresses provider
+    "0x43078AbfB76bd24885Fd64eFFB22049f92a8c495", // bend collector
+    "0x87ddE3A3f4b629E389ce5894c9A1F34A7eeC5648", // debtWETH
+    "0xeD1840223484483C0cb050E6fC344d1eBF0778a9", // bWETH
+    "0x6c415673C79b31aCA38669AD9fb5cdb7012C0e8e", // bWPUNK
+    "0xDBfD76AF2157Dc15eE4e57F3f942bB45Ba84aF24", // bBAYC
+    "0x7C2A19e54e48718f6C60908a9Cff3396E4Ea1eBA", // NFTOracle
+  ],
 };
 
 export const Seaport: Params<string[]> = {
@@ -120,5 +137,9 @@ export const X2Y2: Params<string[]> = {
     "0x88532a901475B3DdF370386AE22C2067846f7D7a", // ERC721Delegate
     "0xc84cd8960d7227320e96343e5694b6707fe92b6f", // owner
   ],
-  [Network.main]: [],
+  [Network.main]: [
+    "0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3", // X2Y2
+    "0xf849de01b080adc3a814fabe1e2087475cf2e354", // ERC721Delegate
+    "0x5d7cca9fb832bbd99c8bd720ebda39b028648301", // owner
+  ],
 };
