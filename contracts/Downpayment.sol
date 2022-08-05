@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.9;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
-import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {EnumerableSetUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import {IERC20Upgradeable, SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import {IAaveLendPoolAddressesProvider} from "./interfaces/IAaveLendPoolAddressesProvider.sol";
 import {IAaveLendPool} from "./interfaces/IAaveLendPool.sol";
@@ -16,15 +16,15 @@ import {IDownpayment} from "./interfaces/IDownpayment.sol";
 
 import {PercentageMath} from "./libraries/PercentageMath.sol";
 
-contract Downpayment is Ownable, ReentrancyGuard, IDownpayment {
-    using SafeERC20 for IERC20;
-    using EnumerableSet for EnumerableSet.AddressSet;
-    using Counters for Counters.Counter;
+contract Downpayment is OwnableUpgradeable, ReentrancyGuardUpgradeable, IDownpayment {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+    using CountersUpgradeable for CountersUpgradeable.Counter;
 
-    EnumerableSet.AddressSet private _whitelistedAdapters;
+    EnumerableSetUpgradeable.AddressSet private _whitelistedAdapters;
 
-    IAaveLendPoolAddressesProvider public immutable aaveAddressesProvider;
-    IWETH public immutable override WETH;
+    IAaveLendPoolAddressesProvider public aaveAddressesProvider;
+    IWETH public override WETH;
     ILendPoolAddressesProvider public bendAddressesProvider;
     address public feeCollector;
 
@@ -33,7 +33,7 @@ contract Downpayment is Ownable, ReentrancyGuard, IDownpayment {
 
     event FeeUpdated(address indexed adapter, uint256 indexed newFee);
 
-    mapping(address => Counters.Counter) internal _nonces;
+    mapping(address => CountersUpgradeable.Counter) internal _nonces;
     mapping(address => uint256) private fees;
 
     modifier onlyWhitelisted(address adapter) {
@@ -41,12 +41,14 @@ contract Downpayment is Ownable, ReentrancyGuard, IDownpayment {
         _;
     }
 
-    constructor(
+    function initialize(
         address _aaveAddressesProvider,
         address _bendAddressesProvider,
         address _feeCollector,
         address _weth
-    ) {
+    ) external initializer {
+        __Ownable_init();
+        __ReentrancyGuard_init();
         aaveAddressesProvider = IAaveLendPoolAddressesProvider(_aaveAddressesProvider);
         bendAddressesProvider = ILendPoolAddressesProvider(_bendAddressesProvider);
         feeCollector = _feeCollector;
@@ -63,7 +65,7 @@ contract Downpayment is Ownable, ReentrancyGuard, IDownpayment {
             // Wrap ETH sent to this contract
             WETH.deposit{value: msg.value}();
             // Sent WETH back to sender
-            IERC20(address(WETH)).safeTransfer(msg.sender, msg.value);
+            IERC20Upgradeable(address(WETH)).safeTransfer(msg.sender, msg.value);
         }
         IAaveLendPool aavePool = IAaveLendPool(aaveAddressesProvider.getLendingPool());
         address[] memory assets = new address[](1);
@@ -94,6 +96,11 @@ contract Downpayment is Ownable, ReentrancyGuard, IDownpayment {
         require(_newFee <= PercentageMath.PERCENTAGE_FACTOR, "Fee overflow");
         fees[adapter] = _newFee;
         emit FeeUpdated(adapter, _newFee);
+    }
+
+    function setFeeCollector(address _feeCollector) external onlyOwner {
+        require(_feeCollector != address(0), "Downpayment: feeCollector can not be null address");
+        feeCollector = _feeCollector;
     }
 
     // external view functions
@@ -145,7 +152,7 @@ contract Downpayment is Ownable, ReentrancyGuard, IDownpayment {
 
     // internal functions
     function _incrementNonce(address owner) internal {
-        Counters.Counter storage nonce = _nonces[owner];
+        CountersUpgradeable.Counter storage nonce = _nonces[owner];
         nonce.increment();
     }
 }

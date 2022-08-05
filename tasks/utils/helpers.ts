@@ -71,7 +71,12 @@ export const withSaveAndVerify = async (
   await waitForTx(instance.deployTransaction);
   await registerContractInJsonDB(id, instance);
   if (verify) {
-    const impl = await DRE.upgrades.erc1967.getImplementationAddress(instance.address);
+    let impl = constants.AddressZero;
+    try {
+      impl = await DRE.upgrades.erc1967.getImplementationAddress(instance.address);
+    } catch (error) {
+      impl = constants.AddressZero;
+    }
     if (impl !== constants.AddressZero) {
       await verifyEtherscanContract(impl, []);
     } else {
