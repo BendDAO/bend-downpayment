@@ -34,7 +34,7 @@ export const NETWORKS_RPC_URL: Params<string> = {
 
 export const FeeCollector: Params<string> = {
   [Network.rinkeby]: "0xab576dAab2F1eB5417E1064EaBDe801af934D0e7",
-  [Network.main]: "",
+  [Network.main]: "0xDfB8Aff6642AE9Bc1612E3723178409a197C9770",
 };
 
 export const AAVE: Params<string> = {
@@ -60,7 +60,7 @@ export const PunkMarket: Params<string[]> = {
 
 export const BAYC: Params<string> = {
   [Network.rinkeby]: "0x588D1a07ccdb224cB28dCd8E3dD46E16B3a72b5e",
-  [Network.main]: "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6",
+  [Network.main]: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
 };
 
 export const OpenseaExchange: Params<string[]> = {
@@ -79,7 +79,10 @@ export const BendExchange: Params<string[]> = {
     "0xFeCfD28A068BcB9AAeB1c830870093B24750B076", // BendExchange
     "0xC2A7b92C31e8ADdA71e8AB8bfe23955053D508aB", // StrategyStandardSaleForFixedPrice
   ],
-  [Network.main]: [],
+  [Network.main]: [
+    "0x7e832eC8ad6F66E6C9ECE63acD94516Dd7fC537A", // BendExchange
+    "0x80d190Fa1b1bB5488baD69FD3A89bf52821d4CCA", // StrategyStandardSaleForFixedPrice
+  ],
 };
 
 export const LooksRareExchange: Params<string[]> = {

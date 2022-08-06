@@ -16,6 +16,10 @@ makeSuite("downpayment", (contracts: Contracts, env: Env) => {
       "Adapter: not whitelisted"
     );
 
+    await expect(contracts.downpayment.connect(env.admin).updateFee(contracts.weth.address, 100)).to.be.revertedWith(
+      "Adapter: not whitelisted"
+    );
+
     await expect(contracts.downpayment.connect(env.admin).setFeeCollector(constants.AddressZero)).to.be.revertedWith(
       "Downpayment: feeCollector can not be null address"
     );
@@ -23,6 +27,12 @@ makeSuite("downpayment", (contracts: Contracts, env: Env) => {
     await expect(
       contracts.downpayment.connect(env.admin).updateFee(contracts.punkAdapter.address, 10001)
     ).to.be.revertedWith("Fee overflow");
+
+    await expect(
+      contracts.downpayment
+        .connect(env.admin)
+        .initialize(constants.AddressZero, constants.AddressZero, constants.AddressZero, constants.AddressZero)
+    ).to.be.revertedWith("Initializable: contract is already initialized");
   });
 
   it("Owner revertions work as expected", async () => {

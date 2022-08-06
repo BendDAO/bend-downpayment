@@ -19,6 +19,7 @@ const MNEMONIC_PATH = "m/44'/60'/0'/0";
 const MNEMONIC = process.env.MNEMONIC || "";
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 const REPORT_GAS = !!process.env.REPORT_GAS;
+const GWEI = 1000 * 1000 * 1000;
 
 const tasksPath = path.join(__dirname, "tasks");
 fs.readdirSync(tasksPath)
@@ -45,6 +46,18 @@ const config: HardhatUserConfig = {
     },
     rinkeby: {
       url: NETWORKS_RPC_URL[Network.rinkeby],
+      accounts: PRIVATE_KEY
+        ? [PRIVATE_KEY]
+        : {
+            mnemonic: MNEMONIC,
+            path: MNEMONIC_PATH,
+            initialIndex: 0,
+            count: 20,
+          },
+    },
+    mainnet: {
+      gasPrice: 11 * GWEI,
+      url: NETWORKS_RPC_URL[Network.main],
       accounts: PRIVATE_KEY
         ? [PRIVATE_KEY]
         : {

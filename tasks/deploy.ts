@@ -101,21 +101,41 @@ task("deploy:punkAdapter", "Deploy punkAdapter").setAction(async (_, { network, 
   await deployProxyContract("PunkAdapter", [downpayment.address, punkMarket, wrappedPunk], true);
 });
 
-task("config:Fee", "Config adapter fee")
+task("config:updateFee", "Config adapter fee")
   .addParam("adapter", "adapter name")
   .addParam("fee", "protocol fee")
   .setAction(async ({ adapter, fee }, { run }) => {
     await run("set-DRE");
-    await run("compile");
+    console.log(`updateFee: ${adapter} ${fee}`);
     const downpayment = await getContractFromDB("Downpayment");
-    waitForTx(await downpayment.updateFee(await getContractAddressFromDB(adapter), fee));
+    await waitForTx(await downpayment.updateFee(await getContractAddressFromDB(adapter), fee));
   });
 
 task("config:addAdapter", "Add adapter")
   .addParam("adapter", "adapter name")
   .setAction(async ({ adapter }, { run }) => {
     await run("set-DRE");
-    await run("compile");
+    console.log(`addAdapter: ${adapter}`);
     const downpayment = await getContractFromDB("Downpayment");
-    waitForTx(await downpayment.addAdapter(await getContractAddressFromDB(adapter)));
+    await waitForTx(await downpayment.addAdapter(await getContractAddressFromDB(adapter)));
+  });
+
+task("config:full", "Config adapters")
+  .addParam("fee", "protocol fee")
+  .setAction(async ({ fee }, { run }) => {
+    await run("set-DRE");
+
+    await run("config:addAdapter", { adapter: "LooksRareExchangeAdapter" });
+    await run("config:addAdapter", { adapter: "BendExchangeAdapter" });
+    await run("config:addAdapter", { adapter: "OpenseaAdapter" });
+    await run("config:addAdapter", { adapter: "PunkAdapter" });
+    await run("config:addAdapter", { adapter: "SeaportAdapter" });
+    await run("config:addAdapter", { adapter: "X2Y2Adapter" });
+
+    await run("config:updateFee", { adapter: "LooksRareExchangeAdapter", fee });
+    await run("config:updateFee", { adapter: "BendExchangeAdapter", fee });
+    await run("config:updateFee", { adapter: "OpenseaAdapter", fee });
+    await run("config:updateFee", { adapter: "PunkAdapter", fee });
+    await run("config:updateFee", { adapter: "SeaportAdapter", fee });
+    await run("config:updateFee", { adapter: "X2Y2Adapter", fee });
   });
