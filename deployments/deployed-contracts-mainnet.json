@@ -1,0 +1,30 @@
+{
+  "Downpayment": {
+    "address": "0x3710D54de90324C8BA4B534D1e3F0fCEDc679ca4",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "LooksRareExchangeAdapter": {
+    "address": "0xe276C2EeD4Fbf6045BA3AdB0783b0BAf9C6F5cD1",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "BendExchangeAdapter": {
+    "address": "0xfD8F1f5AAA388ed3bF28B8Adc91D45c8B9db1384",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "OpenseaAdapter": {
+    "address": "0x42d598C2173B356806f0eA452a7091085491C3b2",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "PunkAdapter": {
+    "address": "0x95c9ee5c9DBfC187743AFF7Af0F647821e95066D",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "SeaportAdapter": {
+    "address": "0x5c657B29BB3d89228Dbf489D67279D39ae862d9d",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "X2Y2Adapter": {
+    "address": "0xc384bBd0a25DBE353dd8a09073D636744cFad15B",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  }
+}

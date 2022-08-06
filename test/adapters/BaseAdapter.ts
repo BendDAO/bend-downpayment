@@ -54,6 +54,12 @@ makeSuite("BaseAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
         value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
       })
     ).to.revertedWith("Adapter: receive not allowed");
+
+    await expect(
+      contracts.punkAdapter
+        .connect(env.admin)
+        .initialize(constants.AddressZero, constants.AddressZero, constants.AddressZero)
+    ).to.be.revertedWith("Initializable: contract is already initialized");
   });
 
   it("Owner work as expected", async () => {
