@@ -34,7 +34,7 @@ contract PunkAdapter is BaseAdapter {
         wpunkProxy = wrappedPunks.proxyInfo(address(this));
     }
 
-    function initWETH() external {
+    function initWETH() external reinitializer(2) {
         __BaseAdapter_init(NAME, VERSION, address(downpayment));
     }
 
