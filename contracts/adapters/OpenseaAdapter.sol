@@ -76,6 +76,10 @@ contract OpenseaAdapter is BaseAdapter {
         proxy = openseaExchange.tokenTransferProxy();
     }
 
+    function initWETH() external reinitializer(2) {
+        __BaseAdapter_init(NAME, VERSION, address(downpayment));
+    }
+
     struct CheckOrderParamsLocalVars {
         address buyerpaymentToken;
         address sellerpaymentToken;
@@ -93,7 +97,7 @@ contract OpenseaAdapter is BaseAdapter {
         CheckOrderParamsLocalVars memory vars;
 
         Params memory _orderParams = _decodeParams(_params);
-        address _WETH = address(downpayment.WETH());
+        address _WETH = address(WETH);
 
         // Check order params
         require(address(this) == _orderParams.addrs[1], "Adapter: buyer address error");
@@ -255,7 +259,7 @@ contract OpenseaAdapter is BaseAdapter {
         Params memory _orderParams = _decodeParams(_params);
         uint256 paymentValue = _baseParams.salePrice;
         if (_baseParams.currency == address(0)) {
-            downpayment.WETH().withdraw(paymentValue);
+            WETH.withdraw(paymentValue);
             openseaExchange.atomicMatch_{value: paymentValue}(
                 _orderParams.addrs,
                 _orderParams.uints,
@@ -270,7 +274,7 @@ contract OpenseaAdapter is BaseAdapter {
                 _orderParams.rssMetadata
             );
         } else {
-            downpayment.WETH().approve(proxy, paymentValue);
+            WETH.approve(proxy, paymentValue);
             openseaExchange.atomicMatch_(
                 _orderParams.addrs,
                 _orderParams.uints,
@@ -284,7 +288,7 @@ contract OpenseaAdapter is BaseAdapter {
                 _orderParams.vs,
                 _orderParams.rssMetadata
             );
-            downpayment.WETH().approve(proxy, 0);
+            WETH.approve(proxy, 0);
         }
     }
 

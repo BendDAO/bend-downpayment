@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { task } from "hardhat/config";
 import {
   AAVE,
@@ -12,7 +13,9 @@ import {
   WETH,
   X2Y2,
 } from "../test/config";
+import { IDownpayment } from "../typechain-types";
 import { deployProxyContract, getContractAddressFromDB, getContractFromDB, waitForTx } from "./utils/helpers";
+import { verifyEtherscanContract } from "./utils/verification";
 
 task("deploy:full", "Deploy all contracts").setAction(async (_, { run }) => {
   await run("set-DRE");
@@ -116,8 +119,17 @@ task("config:addAdapter", "Add adapter")
   .setAction(async ({ adapter }, { run }) => {
     await run("set-DRE");
     console.log(`addAdapter: ${adapter}`);
-    const downpayment = await getContractFromDB("Downpayment");
+    const downpayment = await getContractFromDB<IDownpayment>("Downpayment");
     await waitForTx(await downpayment.addAdapter(await getContractAddressFromDB(adapter)));
+  });
+
+task("config:removeAdapter", "Remove adapter")
+  .addParam("adapter", "adapter name")
+  .setAction(async ({ adapter }, { run }) => {
+    await run("set-DRE");
+    console.log(`removeAdapter: ${adapter}`);
+    const downpayment = await getContractFromDB<IDownpayment>("Downpayment");
+    await waitForTx(await downpayment.removeAdapter(await getContractAddressFromDB(adapter)));
   });
 
 task("config:full", "Config adapters")
@@ -138,4 +150,36 @@ task("config:full", "Config adapters")
     await run("config:updateFee", { adapter: "PunkAdapter", fee });
     await run("config:updateFee", { adapter: "SeaportAdapter", fee });
     await run("config:updateFee", { adapter: "X2Y2Adapter", fee });
+  });
+
+task("prepareUpgrade", "Deploy new implmentation for upgrade")
+  .addParam("proxyid", "The proxy contract id")
+  .addParam("implid", "The new impl contract id")
+  .setAction(async ({ proxyid, implid }, { ethers, upgrades, run }) => {
+    await run("set-DRE");
+    await run("compile");
+    const proxyAddress = await getContractAddressFromDB(proxyid);
+    const upgradeable = await ethers.getContractFactory(implid);
+    console.log(`Preparing ${proxyid} upgrade at proxy ${proxyAddress}`);
+    // @ts-ignore
+    const implAddress = await upgrades.prepareUpgrade(proxyAddress, upgradeable);
+    console.log("Implmentation at:", implAddress);
+    const adminAddress = await upgrades.erc1967.getAdminAddress(proxyAddress);
+    console.log("Proxy admin at:", adminAddress);
+    await verifyEtherscanContract(implAddress.toString(), []);
+  });
+
+task("upgrade", "upgrade contract")
+  .addParam("proxyid", "The proxy contract id")
+  .addParam("implid", "The new impl contract id")
+  .setAction(async ({ proxyid, implid }, { ethers, upgrades, run }) => {
+    await run("set-DRE");
+    await run("compile");
+    const proxyAddress = await getContractAddressFromDB(proxyid);
+    const upgradeable = await ethers.getContractFactory(implid);
+    console.log(`Preparing ${proxyid} upgrade at proxy ${proxyAddress}`);
+    // @ts-ignore
+    const implAddress = await upgrades.upgradeProxy(proxyAddress, upgradeable, { unsafeSkipStorageCheck: true });
+    console.log("Implmentation at:", implAddress.address);
+    await verifyEtherscanContract(implAddress.address, []);
   });

@@ -34,6 +34,10 @@ contract PunkAdapter is BaseAdapter {
         wpunkProxy = wrappedPunks.proxyInfo(address(this));
     }
 
+    function initWETH() external {
+        __BaseAdapter_init(NAME, VERSION, address(downpayment));
+    }
+
     function _checkParams(
         address,
         uint256,
@@ -66,7 +70,7 @@ contract PunkAdapter is BaseAdapter {
 
     function _exchange(BaseParams memory _baseParams, bytes memory _params) internal override {
         Params memory _orderParams = _decodeParams(_params);
-        downpayment.WETH().withdraw(_baseParams.salePrice);
+        WETH.withdraw(_baseParams.salePrice);
         punksMarket.buyPunk{value: _orderParams.buyPrice}(_orderParams.punkIndex);
     }
 

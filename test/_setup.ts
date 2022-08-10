@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ethers, network } from "hardhat";
+import { ethers, network, upgrades } from "hardhat";
 import { parseEther } from "ethers/lib/utils";
 import {
   Downpayment,
@@ -196,45 +196,52 @@ export async function setupContracts(): Promise<Contracts> {
 
   // downpayment
   const Downpayment = await ethers.getContractFactory("Downpayment");
-  const downpayment = await Downpayment.deploy();
-  await downpayment.deployed();
-  await downpayment.initialize(
+  const downpayment = await upgrades.deployProxy(Downpayment, [
     mockAaveLendPoolAddressesProvider.address,
     bendAddressesProvider.address,
     bendCollector.address,
-    weth.address
-  );
+    weth.address,
+  ]);
+  await downpayment.deployed();
 
   // adapters
   const OpenseaAdapter = await ethers.getContractFactory("OpenseaAdapter");
-  const openseaAdapter = await OpenseaAdapter.deploy();
+  const openseaAdapter = await upgrades.deployProxy(OpenseaAdapter, [downpayment.address, openseaExchange.address]);
   await openseaAdapter.deployed();
-  await openseaAdapter.initialize(downpayment.address, openseaExchange.address);
 
   const PunkAdapter = await ethers.getContractFactory("PunkAdapter");
-  const punkAdapter = await PunkAdapter.deploy();
+  const punkAdapter = await upgrades.deployProxy(PunkAdapter, [
+    downpayment.address,
+    punkMarket.address,
+    punkMarketParams[1],
+  ]);
   await punkAdapter.deployed();
-  await punkAdapter.initialize(downpayment.address, punkMarket.address, punkMarketParams[1]);
 
   const BendExchangeAdapter = await ethers.getContractFactory("BendExchangeAdapter");
-  const bendExchangeAdapter = await BendExchangeAdapter.deploy();
+  const bendExchangeAdapter = await upgrades.deployProxy(BendExchangeAdapter, [
+    downpayment.address,
+    bendExchange.address,
+  ]);
   await bendExchangeAdapter.deployed();
-  await bendExchangeAdapter.initialize(downpayment.address, bendExchange.address);
 
   const LooksRareExchangeAdapter = await ethers.getContractFactory("LooksRareExchangeAdapter");
-  const looksRareExchangeAdapter = await LooksRareExchangeAdapter.deploy();
+  const looksRareExchangeAdapter = await upgrades.deployProxy(LooksRareExchangeAdapter, [
+    downpayment.address,
+    looksRareExchange.address,
+  ]);
   await looksRareExchangeAdapter.deployed();
-  await looksRareExchangeAdapter.initialize(downpayment.address, looksRareExchange.address);
 
   const SeaportAdapter = await ethers.getContractFactory("SeaportAdapter");
-  const seaportAdapter = await SeaportAdapter.deploy();
+  const seaportAdapter = await upgrades.deployProxy(SeaportAdapter, [
+    downpayment.address,
+    seaportExchange.address,
+    seaportParams[3],
+  ]);
   await seaportAdapter.deployed();
-  await seaportAdapter.initialize(downpayment.address, seaportExchange.address, seaportParams[3]);
 
   const X2Y2Adapter = await ethers.getContractFactory("X2Y2Adapter");
-  const x2y2Adapter = await X2Y2Adapter.deploy();
+  const x2y2Adapter = await upgrades.deployProxy(X2Y2Adapter, [downpayment.address, x2y2Exchange.address]);
   await x2y2Adapter.deployed();
-  await x2y2Adapter.initialize(downpayment.address, x2y2Exchange.address);
 
   /** Return contracts
    */

@@ -30,6 +30,10 @@ contract X2Y2Adapter is BaseAdapter {
         x2y2 = IX2Y2(_x2y2);
     }
 
+    function initWETH() external reinitializer(2) {
+        __BaseAdapter_init(NAME, VERSION, address(downpayment));
+    }
+
     struct ERC721Pair {
         address token;
         uint256 tokenId;
@@ -51,7 +55,7 @@ contract X2Y2Adapter is BaseAdapter {
         IX2Y2.OrderItem memory item = order.items[detail.itemIdx];
 
         require(
-            address(0) == order.currency || address(downpayment.WETH()) == order.currency,
+            address(0) == order.currency || address(WETH) == order.currency,
             "Adapter: currency should be ETH or WETH"
         );
         require(IX2Y2.Op.COMPLETE_SELL_OFFER == detail.op, "Adapter: order op error");
@@ -184,12 +188,12 @@ contract X2Y2Adapter is BaseAdapter {
         IX2Y2.RunInput memory _orderParams = _decodeParams(_params);
         uint256 paymentValue = _baseParams.salePrice;
         if (_baseParams.currency == address(0)) {
-            downpayment.WETH().withdraw(paymentValue);
+            WETH.withdraw(paymentValue);
             x2y2.run{value: paymentValue}(_orderParams);
         } else {
-            downpayment.WETH().approve(address(x2y2), paymentValue);
+            WETH.approve(address(x2y2), paymentValue);
             x2y2.run(_orderParams);
-            downpayment.WETH().approve(address(x2y2), 0);
+            WETH.approve(address(x2y2), 0);
         }
     }
 
