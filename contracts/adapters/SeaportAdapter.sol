@@ -26,6 +26,10 @@ contract SeaportAdapter is BaseAdapter {
         conduitAddress = _conduitAddress;
     }
 
+    function initWETH() external reinitializer(2) {
+        __BaseAdapter_init(NAME, VERSION, address(downpayment));
+    }
+
     function _checkParams(
         address,
         uint256,
@@ -34,7 +38,7 @@ contract SeaportAdapter is BaseAdapter {
         uint256 _nonce
     ) internal view override returns (BaseParams memory) {
         ISeaport.BasicOrderParameters memory _orderParams = _decodeParams(_params);
-        address _WETH = address(downpayment.WETH());
+        address _WETH = address(WETH);
 
         // Check order params
         require(
@@ -116,12 +120,12 @@ contract SeaportAdapter is BaseAdapter {
         ISeaport.BasicOrderParameters memory _orderParams = _decodeParams(_params);
         uint256 paymentValue = _baseParams.salePrice;
         if (_baseParams.currency == address(0)) {
-            downpayment.WETH().withdraw(paymentValue);
+            WETH.withdraw(paymentValue);
             seaportExchange.fulfillBasicOrder{value: paymentValue}(_orderParams);
         } else {
-            downpayment.WETH().approve(conduitAddress, paymentValue);
+            WETH.approve(conduitAddress, paymentValue);
             seaportExchange.fulfillBasicOrder(_orderParams);
-            downpayment.WETH().approve(conduitAddress, 0);
+            WETH.approve(conduitAddress, 0);
         }
     }
 

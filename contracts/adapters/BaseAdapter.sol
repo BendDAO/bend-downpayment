@@ -28,7 +28,8 @@ abstract contract BaseAdapter is
     using PercentageMath for uint256;
     event FeeCharged(address indexed payer, address indexed adapter, uint256 fee);
     IDownpayment public downpayment;
-    uint256[44] private __gap;
+    IWETH public WETH;
+    uint256[43] private __gap;
 
     function __BaseAdapter_init(
         string memory _name,
@@ -40,6 +41,7 @@ abstract contract BaseAdapter is
         __ReentrancyGuard_init();
         __EIP712_init(_name, _version);
         downpayment = IDownpayment(_downpayment);
+        WETH = downpayment.WETH();
     }
 
     struct BaseParams {
@@ -84,7 +86,6 @@ abstract contract BaseAdapter is
     ) external override nonReentrant whenNotPaused returns (bool) {
         require(msg.sender == address(downpayment.getAaveLendPool()), "Adapter: caller must be aave lending pool");
         require(_initiator == address(downpayment), "Adapter: flashloan initiator must be downpayment");
-        IWETH WETH = downpayment.WETH();
         uint256 fee = downpayment.getFee(address(this));
         require(
             _assets.length == 1 && _amounts.length == 1 && _premiums.length == 1,
@@ -157,15 +158,10 @@ abstract contract BaseAdapter is
 
     function _chargeFee(address _payer, uint256 _amount) internal {
         if (_amount > 0) {
-            downpayment.WETH().approve(address(downpayment.getBendLendPool()), _amount);
-            downpayment.getBendLendPool().deposit(
-                address(downpayment.WETH()),
-                _amount,
-                downpayment.getFeeCollector(),
-                0
-            );
+            WETH.approve(address(downpayment.getBendLendPool()), _amount);
+            downpayment.getBendLendPool().deposit(address(WETH), _amount, downpayment.getFeeCollector(), 0);
             emit FeeCharged(_payer, address(this), _amount);
-            downpayment.WETH().approve(address(downpayment.getBendLendPool()), 0);
+            WETH.approve(address(downpayment.getBendLendPool()), 0);
         }
     }
 
@@ -183,7 +179,7 @@ abstract contract BaseAdapter is
         uint256 _amount
     ) internal {
         ILendPool _pool = downpayment.getBendLendPool();
-        address _reserveToken = address(downpayment.WETH());
+        address _reserveToken = address(WETH);
         IERC721Upgradeable _nftERC721 = IERC721Upgradeable(_nftAsset);
         require(_nftERC721.ownerOf(_nftTokenId) == address(this), "Adapter: not own nft");
         _nftERC721.approve(address(_pool), _nftTokenId);
@@ -199,8 +195,8 @@ abstract contract BaseAdapter is
 
     function _repayFlashLoan(uint256 _flashLoanDebt) internal {
         address aaveLendPool = address(downpayment.getAaveLendPool());
-        downpayment.WETH().approve(aaveLendPool, 0);
-        downpayment.WETH().approve(aaveLendPool, _flashLoanDebt);
+        WETH.approve(aaveLendPool, 0);
+        WETH.approve(aaveLendPool, _flashLoanDebt);
     }
 
     function _checkSig(
@@ -224,6 +220,6 @@ abstract contract BaseAdapter is
      * @dev Only WETH contract is allowed to transfer ETH here. Prevent other addresses to send Ether to this contract.
      */
     receive() external payable {
-        require(msg.sender == address(downpayment.WETH()), "Adapter: receive not allowed");
+        require(msg.sender == address(WETH), "Adapter: receive not allowed");
     }
 }
