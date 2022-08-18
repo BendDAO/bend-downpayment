@@ -15,6 +15,7 @@ import {ILendPool} from "../interfaces/ILendPool.sol";
 import {PercentageMath} from "../libraries/PercentageMath.sol";
 import {IWETH} from "../interfaces/IWETH.sol";
 import {IDownpayment} from "../interfaces/IDownpayment.sol";
+import {IENSReverseRegistrar} from "../interfaces/IENSReverseRegistrar.sol";
 
 abstract contract BaseAdapter is
     IAaveFlashLoanReceiver,
@@ -26,7 +27,17 @@ abstract contract BaseAdapter is
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using PercentageMath for uint256;
-    event FeeCharged(address indexed payer, address indexed adapter, uint256 fee);
+    event Purchased(
+        address indexed buyer,
+        address indexed nftToken,
+        uint256 nftTokenId,
+        address indexed currency,
+        uint256 borrowedAmount,
+        uint256 price,
+        uint256 flashLoanFee,
+        uint256 downpaymentFee,
+        bytes32 orderHash
+    );
     IDownpayment public downpayment;
     IWETH public WETH;
     uint256[43] private __gap;
@@ -64,17 +75,6 @@ abstract contract BaseAdapter is
         bytes32 r;
         bytes32 s;
     }
-
-    // abstract functions
-    function _checkParams(
-        address _buyer,
-        uint256 _flashBorrowedAmount,
-        uint256 _flashFee,
-        bytes memory _params,
-        uint256 _nonce
-    ) internal view virtual returns (BaseParams memory);
-
-    function _exchange(BaseParams memory baseParams, bytes memory _params) internal virtual;
 
     // external functions
     function executeOperation(
@@ -141,10 +141,22 @@ abstract contract BaseAdapter is
         _afterBorrowWETH(baseParams.nftAsset, baseParams.nftTokenId, vars.buyer, vars.flashBorrowedAmount);
 
         // Charge fee, sent to bend collector
-        _chargeFee(vars.buyer, vars.bendFeeAmount);
+        _chargeFee(vars.bendFeeAmount);
 
         // Repay flash loan
         _repayFlashLoan(vars.flashLoanDebt);
+
+        emit Purchased(
+            vars.buyer,
+            baseParams.nftAsset,
+            baseParams.nftTokenId,
+            baseParams.currency,
+            vars.flashBorrowedAmount,
+            baseParams.salePrice,
+            vars.flashFee,
+            vars.bendFeeAmount,
+            baseParams.paramsHash
+        );
         return true;
     }
 
@@ -156,11 +168,26 @@ abstract contract BaseAdapter is
         _unpause();
     }
 
-    function _chargeFee(address _payer, uint256 _amount) internal {
+    function setENSName(address registrar, string memory name) external onlyOwner returns (bytes32) {
+        return IENSReverseRegistrar(registrar).setName(name);
+    }
+
+    // abstract functions
+    function _checkParams(
+        address _buyer,
+        uint256 _flashBorrowedAmount,
+        uint256 _flashFee,
+        bytes memory _params,
+        uint256 _nonce
+    ) internal view virtual returns (BaseParams memory);
+
+    function _exchange(BaseParams memory baseParams, bytes memory _params) internal virtual;
+
+    // internal functions
+    function _chargeFee(uint256 _amount) internal {
         if (_amount > 0) {
             WETH.approve(address(downpayment.getBendLendPool()), _amount);
             downpayment.getBendLendPool().deposit(address(WETH), _amount, downpayment.getFeeCollector(), 0);
-            emit FeeCharged(_payer, address(this), _amount);
             WETH.approve(address(downpayment.getBendLendPool()), 0);
         }
     }

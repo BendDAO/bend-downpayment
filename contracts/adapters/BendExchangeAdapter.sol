@@ -23,6 +23,10 @@ contract BendExchangeAdapter is BaseAdapter {
         proxy = IAuthorizationManager(bendExchange.authorizationManager()).registerProxy();
     }
 
+    function initWETH() external reinitializer(2) {
+        __BaseAdapter_init(NAME, VERSION, address(downpayment));
+    }
+
     function _checkParams(
         address,
         uint256,
@@ -35,7 +39,7 @@ contract BendExchangeAdapter is BaseAdapter {
         // Check order params
         require(_orderParams.isOrderAsk, "Adapter: maker must ask order");
         require(
-            _orderParams.currency == address(downpayment.WETH()) || _orderParams.currency == address(0),
+            _orderParams.currency == address(WETH) || _orderParams.currency == address(0),
             "Adapter: currency must be ETH or WETH"
         );
         return
@@ -94,9 +98,9 @@ contract BendExchangeAdapter is BaseAdapter {
             takerBid.interceptorExtra = new bytes(0);
         }
 
-        downpayment.WETH().approve(proxy, _baseParams.salePrice);
+        WETH.approve(proxy, _baseParams.salePrice);
         bendExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
-        downpayment.WETH().approve(proxy, 0);
+        WETH.approve(proxy, 0);
     }
 
     function _decodeParams(bytes memory _params) internal pure returns (IBendExchange.MakerOrder memory) {

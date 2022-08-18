@@ -70,9 +70,20 @@ makeSuite("BaseAdapter", (contracts: Contracts, env: Env, snapshots: Snapshots) 
       "Ownable: caller is not the owner"
     );
 
+    await expect(
+      contracts.punkAdapter.connect(env.accounts[2]).setENSName(constants.AddressZero, "test ens name")
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+
     await expect(contracts.punkAdapter.connect(env.admin).unpause()).to.be.revertedWith("Pausable: not paused");
 
     expect(contracts.punkAdapter.connect(env.admin).pause()).to.be.ok;
+
+    const MockENSReverseRegistrar = await ethers.getContractFactory("MockENSReverseRegistrar");
+    const mockENSReverseRegistrar = await MockENSReverseRegistrar.deploy();
+
+    await expect(
+      contracts.punkAdapter.connect(env.accounts[2]).setENSName(mockENSReverseRegistrar.address, "test ens name")
+    ).to.be.revertedWith("Ownable: caller is not the owner");
 
     await expect(
       contracts.punkAdapter

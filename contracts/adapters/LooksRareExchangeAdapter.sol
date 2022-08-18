@@ -20,6 +20,10 @@ contract LooksRareExchangeAdapter is BaseAdapter {
         looksRareExchange = ILooksRareExchange(_looksRareExchange);
     }
 
+    function initWETH() external reinitializer(2) {
+        __BaseAdapter_init(NAME, VERSION, address(downpayment));
+    }
+
     function _checkParams(
         address,
         uint256,
@@ -31,7 +35,7 @@ contract LooksRareExchangeAdapter is BaseAdapter {
 
         // Check order params
         require(_orderParams.isOrderAsk, "Adapter: maker must ask order");
-        require(_orderParams.currency == address(downpayment.WETH()), "Adapter: currency must be WETH");
+        require(_orderParams.currency == address(WETH), "Adapter: currency must be WETH");
         return
             BaseParams({
                 nftAsset: _orderParams.collection,
@@ -81,9 +85,9 @@ contract LooksRareExchangeAdapter is BaseAdapter {
             takerBid.minPercentageToAsk = 0;
             takerBid.params = new bytes(0);
         }
-        downpayment.WETH().approve(address(looksRareExchange), _baseParams.salePrice);
+        WETH.approve(address(looksRareExchange), _baseParams.salePrice);
         looksRareExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
-        downpayment.WETH().approve(address(looksRareExchange), 0);
+        WETH.approve(address(looksRareExchange), 0);
     }
 
     function _decodeParams(bytes memory _params) internal pure returns (ILooksRareExchange.MakerOrder memory) {

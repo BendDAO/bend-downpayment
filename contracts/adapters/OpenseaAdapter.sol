@@ -5,8 +5,6 @@ import {IOpenseaExchage} from "../interfaces/IOpenseaExchage.sol";
 
 import {BaseAdapter, IERC721Upgradeable} from "./BaseAdapter.sol";
 
-import "hardhat/console.sol";
-
 contract OpenseaAdapter is BaseAdapter {
     string public constant NAME = "Opensea Downpayment Adapter";
     string public constant VERSION = "1.0";
