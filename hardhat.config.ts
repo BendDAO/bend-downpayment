@@ -56,7 +56,7 @@ const config: HardhatUserConfig = {
           },
     },
     mainnet: {
-      // gasPrice: 23 * GWEI,
+      // gasPrice: 7 * GWEI,
       url: NETWORKS_RPC_URL[Network.mainnet],
       accounts: PRIVATE_KEY
         ? [PRIVATE_KEY]
