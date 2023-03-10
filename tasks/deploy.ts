@@ -10,11 +10,12 @@ import {
   OpenseaExchange,
   PunkMarket,
   Seaport,
+  Seaport14,
   WETH,
   X2Y2,
 } from "../test/config";
 import { IDownpayment } from "../typechain-types";
-import { deployProxyContract, getContractAddressFromDB, getContractFromDB, waitForTx } from "./utils/helpers";
+import { deployProxyContract, deployProxyContractWithID, getContractAddressFromDB, getContractFromDB, waitForTx } from "./utils/helpers";
 import { verifyEtherscanContract } from "./utils/verification";
 
 task("deploy:full", "Deploy all contracts").setAction(async (_, { run }) => {
@@ -61,6 +62,17 @@ task("deploy:seaportAdapter", "Deploy seaportAdapter").setAction(async (_, { net
   const conduitAddress = getParams(Seaport, networkName)[3];
   const downpayment = await getContractFromDB("Downpayment");
   await deployProxyContract("SeaportAdapter", [downpayment.address, seaportExchange, conduitAddress], true);
+});
+
+task("deploy:seaport14Adapter", "Deploy seaportAdapter").setAction(async (_, { network, run }) => {
+  await run("set-DRE");
+  await run("compile");
+  const networkName = network.name;
+
+  const seaportExchange = getParams(Seaport14, networkName)[0];
+  const conduitAddress = getParams(Seaport14, networkName)[3];
+  const downpayment = await getContractFromDB("Downpayment");
+  await deployProxyContractWithID("Seaport14Adapter", "SeaportAdapter", [downpayment.address, seaportExchange, conduitAddress], true);
 });
 
 task("deploy:looksRareExchangeAdapter", "Deploy looksRareExchangeAdapter").setAction(async (_, { network, run }) => {

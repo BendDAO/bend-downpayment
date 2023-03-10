@@ -64,6 +64,16 @@ export const deployProxyContract = async (contractName: string, args: any[], ver
   return instance;
 };
 
+export const deployProxyContractWithID = async (id: string, contractName: string, args: any[], verify?: boolean): Promise<Contract> => {
+  console.log("deploy", contractName);
+  const factory = await DRE.ethers.getContractFactory(contractName);
+  const instance = await DRE.upgrades.deployProxy(factory, args, {
+    timeout: 0,
+  });
+  await withSaveAndVerify(instance, id, args, verify);
+  return instance;
+};
+
 export const withSaveAndVerify = async (
   instance: Contract,
   id: string,

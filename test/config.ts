@@ -134,6 +134,23 @@ export const Seaport: Params<string[]> = {
   ],
 };
 
+export const Seaport14: Params<string[]> = {
+  [Network.rinkeby]: [
+    "0x00000000000001ad428e4906aE43D8F9852d0dD6", // exchange
+    "0x00000000e88fe2628ebc5da81d2b3cead633e89e", // zone
+    "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
+    "0x1e0049783f008a0085193e00003d00cd54003c71", // OPENSEA_CONDUIT_ADDRESS
+    "0x00000000F9490004C11Cef243f5400493c00Ad63", // ConduitController
+  ],
+  [Network.mainnet]: [
+    "0x00000000000001ad428e4906aE43D8F9852d0dD6", // exchange
+    "0x004c00500000ad104d7dbd00e3ae0a5c00560c00", // zone
+    "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
+    "0x1e0049783f008a0085193e00003d00cd54003c71", // OPENSEA_CONDUIT_ADDRESS
+    "0x00000000F9490004C11Cef243f5400493c00Ad63", // ConduitController
+  ],
+};
+
 export const X2Y2: Params<string[]> = {
   [Network.rinkeby]: [
     "0x98ecc977f7a0ebebec6d01d63e87eeeefe9456b4", // X2Y2
