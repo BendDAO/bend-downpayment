@@ -26,10 +26,6 @@ contract SeaportAdapter is BaseAdapter {
         conduitAddress = _conduitAddress;
     }
 
-    function initWETH() external reinitializer(2) {
-        __BaseAdapter_init(NAME, VERSION, address(downpayment));
-    }
-
     function _checkParams(
         address,
         uint256,

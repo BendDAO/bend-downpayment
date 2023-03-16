@@ -10,13 +10,13 @@ import {
   ConsiderationInputItem,
   Fee,
 } from "@opensea/seaport-js/lib/types";
-import { formatBytes32String } from "ethers/lib/utils";
 import {
   SEAPORT_CONTRACT_NAME,
-  SEAPORT_CONTRACT_VERSION,
   ItemType,
   OrderType,
   BasicOrderRouteType,
+  EIP_712_ORDER_TYPE,
+  SEAPORT_CONTRACT_VERSION_V1_4,
 } from "@opensea/seaport-js/lib/constants";
 import {
   mapInputItemToOfferItem,
@@ -46,37 +46,6 @@ const offerAndConsiderationFulfillmentMapping: {
     [ItemType.ERC20]: BasicOrderRouteType.ERC20_TO_ERC1155,
   },
 } as const;
-
-export const EIP_712_ORDER_TYPE = {
-  OrderComponents: [
-    { name: "offerer", type: "address" },
-    { name: "zone", type: "address" },
-    { name: "offer", type: "OfferItem[]" },
-    { name: "consideration", type: "ConsiderationItem[]" },
-    { name: "orderType", type: "uint8" },
-    { name: "startTime", type: "uint256" },
-    { name: "endTime", type: "uint256" },
-    { name: "zoneHash", type: "bytes32" },
-    { name: "salt", type: "uint256" },
-    { name: "conduitKey", type: "bytes32" },
-    { name: "counter", type: "uint256" },
-  ],
-  OfferItem: [
-    { name: "itemType", type: "uint8" },
-    { name: "token", type: "address" },
-    { name: "identifierOrCriteria", type: "uint256" },
-    { name: "startAmount", type: "uint256" },
-    { name: "endAmount", type: "uint256" },
-  ],
-  ConsiderationItem: [
-    { name: "itemType", type: "uint8" },
-    { name: "token", type: "address" },
-    { name: "identifierOrCriteria", type: "uint256" },
-    { name: "startAmount", type: "uint256" },
-    { name: "endAmount", type: "uint256" },
-    { name: "recipient", type: "address" },
-  ],
-};
 
 export const EIP_712_PARAM_TYPE = {
   Params: [
@@ -114,7 +83,6 @@ export type CreateOrderInput = {
   offerer: string;
   orderType: OrderType;
   conduitKey: string;
-  zone: string;
   startTime: BigNumber;
   endTime: BigNumber;
   offer: CreateInputItem;
@@ -149,9 +117,8 @@ export const createOrder = async (input: CreateOrderInput): Promise<OrderParamet
   ];
   return {
     offerer: input.offerer,
-    zone: input.zone,
-    // TODO: Placeholder
-    zoneHash: formatBytes32String(input.nonce.toString()),
+    zone: "0x0000000000000000000000000000000000000000",
+    zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
     startTime: input.startTime,
     endTime: input.endTime,
     orderType: input.orderType,
@@ -175,7 +142,7 @@ export const signOrder = async (
 
   const domainData = {
     name: SEAPORT_CONTRACT_NAME,
-    version: SEAPORT_CONTRACT_VERSION,
+    version: SEAPORT_CONTRACT_VERSION_V1_4,
     chainId,
     verifyingContract,
   };

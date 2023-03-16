@@ -30,10 +30,6 @@ contract X2Y2Adapter is BaseAdapter {
         x2y2 = IX2Y2(_x2y2);
     }
 
-    function initWETH() external reinitializer(2) {
-        __BaseAdapter_init(NAME, VERSION, address(downpayment));
-    }
-
     struct ERC721Pair {
         address token;
         uint256 tokenId;

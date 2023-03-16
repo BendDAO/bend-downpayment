@@ -1,8 +1,8 @@
 {
   "manifestVersion": "3.2",
   "admin": {
-    "address": "0x72EF93EAe807C850C1F8eC0209d9D5CCBc38f34D",
-    "txHash": "0xc469ee93bafd276e016c11fe2ae3534684e43855c9c31288e0fa969c9f9a84de"
+    "address": "0x51522C5D19dF4841B3eC82d1F97e1D08E8BFf37f",
+    "txHash": "0xfcf7911eceabc26b4d9d86339d23c752504fe4cd4176632f1037167c95b29e4f"
   },
   "proxies": [
     {
@@ -111,6 +111,36 @@
     {
       "address": "0xd8084607436A039eb8b823D8D17e89d7114e73b7",
       "txHash": "0xde091562ab94a9976c759260c5b96b51df18547ef0993c284578fa0de0b87ab5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xc81319b8D5A7Df0c3BE61eEdeB4C26186C993d34",
+      "txHash": "0x88b3e6e095a152598bd2a030af89c18a11770c1de8abacf14739197ce7d46f8b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xec8eEef80bda591e5f909c39C743EC437B8D9e17",
+      "txHash": "0x1bbdd062755a647a2f04025361989e059bc03618853d68683ff2d559c8028ca4",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x287da1D560CC66F6A686E9E2723eB7A21DE35422",
+      "txHash": "0x4ca95e63365104dea53ca06e52020e30ba9c397b1207feaa0ce1b6834e40e46a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xd21b5d2e6EedeF1b7Ead2Fb17c9Acb4D9214D1D9",
+      "txHash": "0xc7e576261078b8c3b0b632560296d6b7d1a1e3d2ede299e3e0d46d61b42169d2",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xdFc18Aa448CD0cD50D2C90Ba74D59Ee001F1d3d6",
+      "txHash": "0xfd3b3a04c47bd3e7f7a2f0e274af237a15d54440168e353ef712165a9ff6003c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x39F26E0D5F7f603be61175E50A21895a4d8Da989",
+      "txHash": "0x29a55d3ab21351a7ad7a5d8d0c477d73b92891066ec25d2a5d7c43cc456e3909",
       "kind": "transparent"
     }
   ],
@@ -2479,8 +2509,8 @@
       }
     },
     "4f3c1abcb6f77791bc6bccacc82bd654a3017a57e11be6c15392814082f752f1": {
-      "address": "0x7EBe832FfD1cC8759d84252A6c86d4145641569D",
-      "txHash": "0xdf3480b3b823d0ddc82ed50874c8102e763ded4e44ddccb8dcd68eee1ae760e4",
+      "address": "0x56BBC4969818d4E27Fe39983f8aDee4F3e1C5c6f",
+      "txHash": "0x76c7b1cc17d9b09bb9531d8e4e32542682c2e05fc968a7ea4b83ff5bfa0bce46",
       "layout": {
         "storage": [
           {
@@ -2552,7 +2582,7 @@
             "label": "aaveAddressesProvider",
             "offset": 0,
             "slot": "153",
-            "type": "t_contract(IAaveLendPoolAddressesProvider)9456",
+            "type": "t_contract(IAaveLendPoolAddressesProvider)8385",
             "contract": "Downpayment",
             "src": "contracts/Downpayment.sol:26"
           },
@@ -2560,7 +2590,7 @@
             "label": "WETH",
             "offset": 0,
             "slot": "154",
-            "type": "t_contract(IWETH)10150",
+            "type": "t_contract(IWETH)9024",
             "contract": "Downpayment",
             "src": "contracts/Downpayment.sol:27"
           },
@@ -2568,7 +2598,7 @@
             "label": "bendAddressesProvider",
             "offset": 0,
             "slot": "155",
-            "type": "t_contract(ILendPoolAddressesProvider)9841",
+            "type": "t_contract(ILendPoolAddressesProvider)8770",
             "contract": "Downpayment",
             "src": "contracts/Downpayment.sol:28"
           },
@@ -2622,15 +2652,15 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IAaveLendPoolAddressesProvider)9456": {
+          "t_contract(IAaveLendPoolAddressesProvider)8385": {
             "label": "contract IAaveLendPoolAddressesProvider",
             "numberOfBytes": "20"
           },
-          "t_contract(ILendPoolAddressesProvider)9841": {
+          "t_contract(ILendPoolAddressesProvider)8770": {
             "label": "contract ILendPoolAddressesProvider",
             "numberOfBytes": "20"
           },
-          "t_contract(IWETH)10150": {
+          "t_contract(IWETH)9024": {
             "label": "contract IWETH",
             "numberOfBytes": "20"
           },
@@ -3289,8 +3319,8 @@
       }
     },
     "caabd75c22abd13fdf30e3e8c4d8734b04784ec775f650e8ba64aaf3c66a676f": {
-      "address": "0x565Efc556f01A2F59eb45ebe503C47D22C5239c0",
-      "txHash": "0xa0cff51c320652d6b1ff213717ad1a29ce5d6b6b7c99882721d5d59c53f30831",
+      "address": "0x9AC91029691A8D483F32672A0261D4E8708351D7",
+      "txHash": "0xdac5864a8e1e563986fbbbe4b314a337b9749824b4d265b3019dd63c9beb30b1",
       "layout": {
         "storage": [
           {
@@ -3402,7 +3432,7 @@
             "label": "downpayment",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IDownpayment)9752",
+            "type": "t_contract(IDownpayment)8681",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:41"
           },
@@ -3410,7 +3440,7 @@
             "label": "WETH",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IWETH)10150",
+            "type": "t_contract(IWETH)9024",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:42"
           },
@@ -3426,7 +3456,7 @@
             "label": "looksRareExchange",
             "offset": 0,
             "slot": "348",
-            "type": "t_contract(ILooksRareExchange)9904",
+            "type": "t_contract(ILooksRareExchange)8833",
             "contract": "LooksRareExchangeAdapter",
             "src": "contracts/adapters/LooksRareExchangeAdapter.sol:16"
           }
@@ -3456,15 +3486,15 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IDownpayment)9752": {
+          "t_contract(IDownpayment)8681": {
             "label": "contract IDownpayment",
             "numberOfBytes": "20"
           },
-          "t_contract(ILooksRareExchange)9904": {
+          "t_contract(ILooksRareExchange)8833": {
             "label": "contract ILooksRareExchange",
             "numberOfBytes": "20"
           },
-          "t_contract(IWETH)10150": {
+          "t_contract(IWETH)9024": {
             "label": "contract IWETH",
             "numberOfBytes": "20"
           },
@@ -3480,8 +3510,8 @@
       }
     },
     "b560abea580d4af83f232d59a2397458d8652aaee6a86661b112bdb0b5d7802b": {
-      "address": "0x88A5b03Abc177CD30600F485e0be564BfC35Ff68",
-      "txHash": "0x725d6fb08575d241d5d6e51e4da4e108aab4ea4cb17afa878e3e18369db33f86",
+      "address": "0xde54dEe81876c4696044714Ee375ba8bc037b14B",
+      "txHash": "0x9af477dca50321176b2a9aee0c2070389248dbc61abdd11692e379150f401e08",
       "layout": {
         "storage": [
           {
@@ -3593,7 +3623,7 @@
             "label": "downpayment",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IDownpayment)9752",
+            "type": "t_contract(IDownpayment)8681",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:41"
           },
@@ -3601,7 +3631,7 @@
             "label": "WETH",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IWETH)10150",
+            "type": "t_contract(IWETH)9024",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:42"
           },
@@ -3617,7 +3647,7 @@
             "label": "bendExchange",
             "offset": 0,
             "slot": "348",
-            "type": "t_contract(IBendExchange)9569",
+            "type": "t_contract(IBendExchange)8498",
             "contract": "BendExchangeAdapter",
             "src": "contracts/adapters/BendExchangeAdapter.sol:16"
           },
@@ -3655,15 +3685,15 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IBendExchange)9569": {
+          "t_contract(IBendExchange)8498": {
             "label": "contract IBendExchange",
             "numberOfBytes": "20"
           },
-          "t_contract(IDownpayment)9752": {
+          "t_contract(IDownpayment)8681": {
             "label": "contract IDownpayment",
             "numberOfBytes": "20"
           },
-          "t_contract(IWETH)10150": {
+          "t_contract(IWETH)9024": {
             "label": "contract IWETH",
             "numberOfBytes": "20"
           },
@@ -4088,8 +4118,8 @@
       }
     },
     "c28140a49143c28d47249b147feaee0a99dee14a87d7373353005d8cdb095e09": {
-      "address": "0xA56d6804f6e5062b2FE52368CDeea80a05F0c223",
-      "txHash": "0x869ecff4609d3962e5733934a248147d367b368b7fbaec05aca5646ca7f3f69e",
+      "address": "0xDcbd0d0A904eAad4e2935745faD7c27eBD9BC862",
+      "txHash": "0xd6836323c35cc9b18b08164eb286b2d38865d93d024af1a43723a9bf491b194a",
       "layout": {
         "storage": [
           {
@@ -4201,7 +4231,7 @@
             "label": "downpayment",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IDownpayment)9752",
+            "type": "t_contract(IDownpayment)8681",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:41"
           },
@@ -4209,7 +4239,7 @@
             "label": "WETH",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IWETH)10150",
+            "type": "t_contract(IWETH)9024",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:42"
           },
@@ -4225,7 +4255,7 @@
             "label": "punksMarket",
             "offset": 0,
             "slot": "348",
-            "type": "t_contract(ICryptoPunksMarket)9631",
+            "type": "t_contract(ICryptoPunksMarket)8560",
             "contract": "PunkAdapter",
             "src": "contracts/adapters/PunkAdapter.sol:15"
           },
@@ -4233,7 +4263,7 @@
             "label": "wrappedPunks",
             "offset": 0,
             "slot": "349",
-            "type": "t_contract(IWrappedPunks)10182",
+            "type": "t_contract(IWrappedPunks)9056",
             "contract": "PunkAdapter",
             "src": "contracts/adapters/PunkAdapter.sol:16"
           },
@@ -4271,19 +4301,19 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(ICryptoPunksMarket)9631": {
+          "t_contract(ICryptoPunksMarket)8560": {
             "label": "contract ICryptoPunksMarket",
             "numberOfBytes": "20"
           },
-          "t_contract(IDownpayment)9752": {
+          "t_contract(IDownpayment)8681": {
             "label": "contract IDownpayment",
             "numberOfBytes": "20"
           },
-          "t_contract(IWETH)10150": {
+          "t_contract(IWETH)9024": {
             "label": "contract IWETH",
             "numberOfBytes": "20"
           },
-          "t_contract(IWrappedPunks)10182": {
+          "t_contract(IWrappedPunks)9056": {
             "label": "contract IWrappedPunks",
             "numberOfBytes": "20"
           },
@@ -4299,8 +4329,8 @@
       }
     },
     "a505b99ee05c6e667078f0a38bb75dfc9e0cbdac1cf933db7228ca11e351fd54": {
-      "address": "0x19eE297a8a45263da496a300A2cAcb1B85984D7F",
-      "txHash": "0xf6a5b31b7e9f8f00ed423169f09068472c4e02d2d8be33a0630d878af50a9c9c",
+      "address": "0x1494291Ad1B8AE16Da16D7616e4A87AeC14646c4",
+      "txHash": "0x5d03706ed8806d4164c9aa412406c10aa70ea79f71b3490addb7dede7e2a2e91",
       "layout": {
         "storage": [
           {
@@ -4412,7 +4442,7 @@
             "label": "downpayment",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IDownpayment)9752",
+            "type": "t_contract(IDownpayment)8681",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:41"
           },
@@ -4420,7 +4450,7 @@
             "label": "WETH",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IWETH)10150",
+            "type": "t_contract(IWETH)9024",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:42"
           },
@@ -4436,7 +4466,7 @@
             "label": "seaportExchange",
             "offset": 0,
             "slot": "348",
-            "type": "t_contract(ISeaport)10094",
+            "type": "t_contract(ISeaport)8968",
             "contract": "SeaportAdapter",
             "src": "contracts/adapters/SeaportAdapter.sol:16"
           },
@@ -4474,15 +4504,15 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IDownpayment)9752": {
+          "t_contract(IDownpayment)8681": {
             "label": "contract IDownpayment",
             "numberOfBytes": "20"
           },
-          "t_contract(ISeaport)10094": {
+          "t_contract(ISeaport)8968": {
             "label": "contract ISeaport",
             "numberOfBytes": "20"
           },
-          "t_contract(IWETH)10150": {
+          "t_contract(IWETH)9024": {
             "label": "contract IWETH",
             "numberOfBytes": "20"
           },
@@ -4498,8 +4528,8 @@
       }
     },
     "6087c9f0462dbcf50d3192ee21ef671784cb1affbb305391071645366ff57996": {
-      "address": "0xd857E57444f9870d8782865E4610bafFDb5f9C4B",
-      "txHash": "0x2be6a54263ac21ad492c6b43c00464de59f551363894ff69a8887e1ff1ff42ea",
+      "address": "0x06Af5812D823ea208833A9aFBf207396714bc031",
+      "txHash": "0xb7cd7d554873aff38a2913cd92183245d377241a90887f6b83286c195cc2f765",
       "layout": {
         "storage": [
           {
@@ -4611,7 +4641,7 @@
             "label": "downpayment",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IDownpayment)9752",
+            "type": "t_contract(IDownpayment)8681",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:41"
           },
@@ -4619,7 +4649,7 @@
             "label": "WETH",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IWETH)10150",
+            "type": "t_contract(IWETH)9024",
             "contract": "BaseAdapter",
             "src": "contracts/adapters/BaseAdapter.sol:42"
           },
@@ -4635,7 +4665,7 @@
             "label": "x2y2",
             "offset": 0,
             "slot": "348",
-            "type": "t_contract(IX2Y2)10305",
+            "type": "t_contract(IX2Y2)9179",
             "contract": "X2Y2Adapter",
             "src": "contracts/adapters/X2Y2Adapter.sol:26"
           }
@@ -4665,15 +4695,15 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IDownpayment)9752": {
+          "t_contract(IDownpayment)8681": {
             "label": "contract IDownpayment",
             "numberOfBytes": "20"
           },
-          "t_contract(IWETH)10150": {
+          "t_contract(IWETH)9024": {
             "label": "contract IWETH",
             "numberOfBytes": "20"
           },
-          "t_contract(IX2Y2)10305": {
+          "t_contract(IX2Y2)9179": {
             "label": "contract IX2Y2",
             "numberOfBytes": "20"
           },

@@ -6,7 +6,6 @@ import { findPrivateKey } from "../helpers/hardhat-keys";
 import { X2Y2Order, Fee, RunInput, SettleDetail, X2Y2OrderItem } from "@x2y2-io/sdk/src/types";
 import { DELEGATION_TYPE_ERC721, INTENT_SELL, OP_COMPLETE_SELL_OFFER } from "@x2y2-io/sdk";
 import { latest } from "../helpers/block-traveller";
-// import { _TypedDataEncoder } from "@ethersproject/hash";
 
 const orderItemParamType = `tuple(uint256 price, bytes data)`;
 const orderParamTypes = [
