@@ -20,10 +20,6 @@ contract LooksRareExchangeAdapter is BaseAdapter {
         looksRareExchange = ILooksRareExchange(_looksRareExchange);
     }
 
-    function initWETH() external reinitializer(2) {
-        __BaseAdapter_init(NAME, VERSION, address(downpayment));
-    }
-
     function _checkParams(
         address,
         uint256,

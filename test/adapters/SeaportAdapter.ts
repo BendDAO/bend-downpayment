@@ -17,7 +17,7 @@ import {
 } from "../signer/seaport";
 import { IERC721, ISeaport, MintableERC721, SeaportAdapter } from "../../typechain-types";
 import { latest } from "../helpers/block-traveller";
-import { getParams, Seaport } from "../config";
+import { getParams, Seaport14 } from "../config";
 import { network } from "hardhat";
 
 const { parseEther } = utils;
@@ -35,7 +35,6 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
   let exchange: ISeaport;
   let adapter: SeaportAdapter;
   let now: BigNumber;
-  let zone: string;
   let conduitKey: string;
   let conduitAddress: string;
 
@@ -50,9 +49,8 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     adapter = contracts.seaportAdapter;
     exchange = contracts.seaportExchange;
     sellPrice = parseEther("10");
-    zone = getParams(Seaport, network.name)[1];
-    conduitKey = getParams(Seaport, network.name)[2];
-    conduitAddress = getParams(Seaport, network.name)[3];
+    conduitKey = getParams(Seaport14, network.name)[1];
+    conduitAddress = getParams(Seaport14, network.name)[2];
 
     waitForTx(await nft.connect(seller).mint(tokenId));
 
@@ -149,8 +147,7 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     const order = await createOrder({
       offerer: seller.address,
       conduitKey: conduitKey,
-      orderType: OrderType.FULL_RESTRICTED,
-      zone: zone,
+      orderType: OrderType.FULL_OPEN,
       startTime: now,
       endTime: now.add(1000),
       offer: {
@@ -173,7 +170,6 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       conduitKey,
       exchangeNonce
     );
-
     await expect(exchange.connect(buyer).fulfillBasicOrder(signedOrder, { value: sellPrice })).to.emit(
       exchange,
       "OrderFulfilled"
@@ -186,8 +182,7 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     const order = await createOrder({
       offerer: seller.address,
       conduitKey: conduitKey,
-      orderType: OrderType.FULL_RESTRICTED,
-      zone: zone,
+      orderType: OrderType.FULL_OPEN,
       startTime: now,
       endTime: now.add(1000),
       offer: {
@@ -220,8 +215,7 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     const order = await createOrder({
       offerer: seller.address,
       conduitKey: conduitKey,
-      orderType: OrderType.FULL_RESTRICTED,
-      zone: zone,
+      orderType: OrderType.FULL_OPEN,
       startTime: now,
       endTime: now.add(1000),
       offer: {
@@ -246,8 +240,7 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     const order = await createOrder({
       offerer: seller.address,
       conduitKey: conduitKey,
-      orderType: OrderType.FULL_RESTRICTED,
-      zone: zone,
+      orderType: OrderType.FULL_OPEN,
       startTime: now,
       endTime: now.add(1000),
       offer: {

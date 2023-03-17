@@ -37,15 +37,15 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      chainId: 4,
+      chainId: 5,
       initialBaseFeePerGas: 0,
       forking: {
-        url: NETWORKS_RPC_URL[Network.rinkeby],
-        blockNumber: 10873081,
+        url: NETWORKS_RPC_URL[Network.goerli],
+        blockNumber: 8664211,
       },
     },
-    rinkeby: {
-      url: NETWORKS_RPC_URL[Network.rinkeby],
+    goerli: {
+      url: NETWORKS_RPC_URL[Network.goerli],
       accounts: PRIVATE_KEY
         ? [PRIVATE_KEY]
         : {

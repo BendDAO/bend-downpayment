@@ -18,13 +18,8 @@ contract BendExchangeAdapter is BaseAdapter {
 
     function initialize(address _downpayment, address _bendExchange) external initializer {
         __BaseAdapter_init(NAME, VERSION, _downpayment);
-
         bendExchange = IBendExchange(_bendExchange);
         proxy = IAuthorizationManager(bendExchange.authorizationManager()).registerProxy();
-    }
-
-    function initWETH() external reinitializer(2) {
-        __BaseAdapter_init(NAME, VERSION, address(downpayment));
     }
 
     function _checkParams(

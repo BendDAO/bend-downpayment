@@ -146,11 +146,11 @@ export class APIClient {
 }
 
 const sharedAPIClient: Record<Network, APIClient | null> = {
-  rinkeby: null,
+  goerli: null,
 };
 
 export async function initAPIClient(apiKey: string) {
-  sharedAPIClient.rinkeby = new APIClient("rinkeby", apiKey);
+  sharedAPIClient.goerli = new APIClient("goerli", apiKey);
 }
 
 export const getSharedAPIClient = (network: Network) => {
