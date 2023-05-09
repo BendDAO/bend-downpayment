@@ -1297,10 +1297,10 @@
   dependencies:
     "@octokit/openapi-types" "^12.6.1"
 
-"@opensea/seaport-js@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.npmmirror.com/@opensea/seaport-js/-/seaport-js-1.1.0.tgz#2c1bf0c599ffbad15f0564783d20fd343e3eb814"
-  integrity sha512-qbr40weL8t97SH24EGSO9rCGR4Ii1Hy/sLVVi/WYHjdOwsIBlP/3CtBOxEKRIhl630o034vjuPjGc4yMJLjLGQ==
+"@opensea/seaport-js@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.npmmirror.com/@opensea/seaport-js/-/seaport-js-1.2.0.tgz#4edebaa8226f62abc2e5bf350680f172e2860b58"
+  integrity sha512-l5Y5ZfMC2Tm2ZXfsyZZNYo72zKHKUUS4J3UTUdK1+1Sd8GgRzwHkBGlBLyowqTrvosGfXR0BDDupP04H+APUZQ==
   dependencies:
     "@0xsequence/multicall" "^0.39.0"
     ethers "^5.6.7"

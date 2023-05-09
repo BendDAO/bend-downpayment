@@ -17,7 +17,7 @@ import {
 } from "../signer/seaport";
 import { IERC721, ISeaport, MintableERC721, SeaportAdapter } from "../../typechain-types";
 import { latest } from "../helpers/block-traveller";
-import { getParams, Seaport14 } from "../config";
+import { getParams, Seaport15 } from "../config";
 import { network } from "hardhat";
 
 const { parseEther } = utils;
@@ -49,8 +49,8 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     adapter = contracts.seaportAdapter;
     exchange = contracts.seaportExchange;
     sellPrice = parseEther("10");
-    conduitKey = getParams(Seaport14, network.name)[1];
-    conduitAddress = getParams(Seaport14, network.name)[2];
+    conduitKey = getParams(Seaport15, network.name)[1];
+    conduitAddress = getParams(Seaport15, network.name)[2];
 
     waitForTx(await nft.connect(seller).mint(tokenId));
 

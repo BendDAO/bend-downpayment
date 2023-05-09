@@ -37,7 +37,7 @@ import {
   BendProtocol,
   BAYC,
   LooksRareExchange,
-  Seaport14,
+  Seaport15,
   X2Y2,
 } from "./config";
 import { waitForTx } from "../tasks/utils/helpers";
@@ -142,7 +142,7 @@ export async function setupContracts(): Promise<Contracts> {
   const punkMarketParams = getParams(PunkMarket, networkName);
   const bendExchangeParams = getParams(BendExchange, networkName);
   const looksRareExchangeParams = getParams(LooksRareExchange, networkName);
-  const seaportParams = getParams(Seaport14, networkName);
+  const seaportParams = getParams(Seaport15, networkName);
   const x2y2Params = getParams(X2Y2, networkName);
 
   // weth

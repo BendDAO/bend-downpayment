@@ -16,7 +16,7 @@ import {
   OrderType,
   BasicOrderRouteType,
   EIP_712_ORDER_TYPE,
-  SEAPORT_CONTRACT_VERSION_V1_4,
+  SEAPORT_CONTRACT_VERSION_V1_5,
 } from "@opensea/seaport-js/lib/constants";
 import {
   mapInputItemToOfferItem,
@@ -142,7 +142,7 @@ export const signOrder = async (
 
   const domainData = {
     name: SEAPORT_CONTRACT_NAME,
-    version: SEAPORT_CONTRACT_VERSION_V1_4,
+    version: SEAPORT_CONTRACT_VERSION_V1_5,
     chainId,
     verifyingContract,
   };

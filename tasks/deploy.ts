@@ -8,7 +8,7 @@ import {
   getParams,
   LooksRareExchange,
   PunkMarket,
-  Seaport14,
+  Seaport15,
   WETH,
   // X2Y2,
 } from "../test/config";
@@ -30,7 +30,7 @@ task("deploy:full", "Deploy all contracts").setAction(async (_, { run }) => {
   await run("deploy:looksRareExchangeAdapter");
   await run("deploy:bendExchangeAdapter");
   await run("deploy:punkAdapter");
-  await run("deploy:seaport14Adapter");
+  await run("deploy:seaport15Adapter");
   // await run("deploy:x2y2Adapter");
 });
 
@@ -57,16 +57,16 @@ task("deploy:downpayment", "Deploy downpayment").setAction(async (_, { network, 
 //   await deployProxyContract("X2Y2Adapter", [downpayment.address, exchange], true);
 // });
 
-task("deploy:seaport14Adapter", "Deploy seaportAdapter").setAction(async (_, { network, run }) => {
+task("deploy:seaport15Adapter", "Deploy seaportAdapter").setAction(async (_, { network, run }) => {
   await run("set-DRE");
   await run("compile");
   const networkName = network.name;
 
-  const seaportExchange = getParams(Seaport14, networkName)[0];
-  const conduitAddress = getParams(Seaport14, networkName)[2];
+  const seaportExchange = getParams(Seaport15, networkName)[0];
+  const conduitAddress = getParams(Seaport15, networkName)[2];
   const downpayment = await getContractFromDB("Downpayment");
   await deployProxyContractWithID(
-    "Seaport14Adapter",
+    "Seaport15Adapter",
     "SeaportAdapter",
     [downpayment.address, seaportExchange, conduitAddress],
     true
@@ -146,14 +146,14 @@ task("config:full", "Config adapters")
     await run("config:addAdapter", { adapter: "LooksRareExchangeAdapter" });
     await run("config:addAdapter", { adapter: "BendExchangeAdapter" });
     await run("config:addAdapter", { adapter: "PunkAdapter" });
-    await run("config:addAdapter", { adapter: "SeaportAdapter" });
-    await run("config:addAdapter", { adapter: "X2Y2Adapter" });
+    await run("config:addAdapter", { adapter: "Seaport15Adapter" });
+    // await run("config:addAdapter", { adapter: "X2Y2Adapter" });
 
     await run("config:updateFee", { adapter: "LooksRareExchangeAdapter", fee });
     await run("config:updateFee", { adapter: "BendExchangeAdapter", fee });
     await run("config:updateFee", { adapter: "PunkAdapter", fee });
-    await run("config:updateFee", { adapter: "SeaportAdapter", fee });
-    await run("config:updateFee", { adapter: "X2Y2Adapter", fee });
+    await run("config:updateFee", { adapter: "Seaport15Adapter", fee });
+    // await run("config:updateFee", { adapter: "X2Y2Adapter", fee });
   });
 
 task("prepareUpgrade", "Deploy new implmentation for upgrade")
