@@ -30,5 +30,9 @@
   "Seaport14Adapter": {
     "address": "0xbb310038407E6647178B8B139892B3387a05d3fd",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "Seaport15Adapter": {
+    "address": "0x8B5ABF01b87f87Fb8e0FfC60D32ed7DD29b1f06b",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }

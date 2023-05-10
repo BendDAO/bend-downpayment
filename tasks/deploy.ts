@@ -205,3 +205,16 @@ task("forceImport", "force import implmentation to proxy")
     // @ts-ignore
     await upgrades.forceImport(proxy, upgradeable);
   });
+
+task("verify:Implementation", "Verify Implementation")
+  .addParam("proxyid", "The proxy contract id")
+  .setAction(async ({ proxyid }, { network, upgrades, run }) => {
+    await run("set-DRE");
+    await run("compile");
+    const networkName = network.name;
+
+    const proxyAddress = await getContractAddressFromDB(proxyid);
+    const implAddress = await upgrades.erc1967.getImplementationAddress(proxyAddress);
+    console.log("proxyAddress:", proxyAddress, "implAddress:", implAddress);
+    await verifyEtherscanContract(implAddress, []);
+  });
