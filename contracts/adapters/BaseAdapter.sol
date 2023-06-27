@@ -186,9 +186,7 @@ abstract contract BaseAdapter is
     // internal functions
     function _chargeFee(uint256 _amount) internal {
         if (_amount > 0) {
-            WETH.approve(address(downpayment.getBendLendPool()), _amount);
-            downpayment.getBendLendPool().deposit(address(WETH), _amount, downpayment.getFeeCollector(), 0);
-            WETH.approve(address(downpayment.getBendLendPool()), 0);
+            IERC20Upgradeable(address(WETH)).safeTransfer(downpayment.getFeeCollector(), _amount);
         }
     }
 
