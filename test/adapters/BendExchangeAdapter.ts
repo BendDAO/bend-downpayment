@@ -74,7 +74,7 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
     const paymentAmount = price.add(aaveFee).add(bendFee).sub(borrowAmount);
     const expectAaveWethBalance = (await contracts.weth.balanceOf(contracts.aaveLendPool.address)).add(aaveFee);
 
-    const expectBendCollectorBWethBalance = (await contracts.bWETH.balanceOf(contracts.bendCollector.address)).add(
+    const expectBendCollectorWethBalance = (await contracts.weth.balanceOf(contracts.bendCollector.address)).add(
       bendFee
     );
     const expectBuyerWethBalance = (await contracts.weth.balanceOf(buyer.address)).sub(paymentAmount);
@@ -113,8 +113,8 @@ makeSuite("BendExchangeAdapter", (contracts: Contracts, env: Env, snapshots: Sna
 
     expect(expectAaveWethBalance).to.be.equal(await contracts.weth.balanceOf(contracts.aaveLendPool.address));
     assertAlmostEqualTol(
-      expectBendCollectorBWethBalance,
-      await contracts.bWETH.balanceOf(contracts.bendCollector.address),
+      expectBendCollectorWethBalance,
+      await contracts.weth.balanceOf(contracts.bendCollector.address),
       0.01
     );
     expect(expectBuyerWethBalance).to.be.equal(await contracts.weth.balanceOf(buyer.address));

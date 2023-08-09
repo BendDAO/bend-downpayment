@@ -33,7 +33,7 @@
     "compile": "TS_NODE_TRANSPILE_ONLY=true hardhat compile",
     "compile:force": "hardhat compile --force",
     "format:check": "prettier --check '**/*.{js,jsx,ts,tsx,sol,json,yaml,md}'",
-    "format:write": "prettier --write '**/*.{js,jsx,ts,tsx,json,yaml,md}'",
+    "format:write": "prettier --write '**/*.{js,jsx,ts,tsx,sol,json,yaml,md}'",
     "lint": "yarn lint:sol && yarn lint:ts && yarn format:check",
     "lint:sol": "solhint  'contracts/**/*.sol'",
     "lint:ts": "eslint '**/*.{js,jsx,ts,tsx}'",
