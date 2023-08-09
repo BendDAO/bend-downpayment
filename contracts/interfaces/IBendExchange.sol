@@ -38,5 +38,7 @@ interface IBendExchange {
         external
         payable;
 
+    function matchAskWithTakerBid(TakerOrder calldata takerBid, MakerOrder calldata makerAsk) external;
+
     function authorizationManager() external view returns (address);
 }

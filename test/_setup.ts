@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, network } from "hardhat";
-import { parseEther } from "ethers/lib/utils";
+import { parseEther, parseUnits } from "ethers/lib/utils";
 import {
   Downpayment,
   PunkAdapter,
@@ -28,6 +28,7 @@ import {
   ISeaport,
   X2Y2Adapter,
   IX2Y2,
+  MintableERC20,
 } from "../typechain-types";
 import {
   getParams,
@@ -39,6 +40,7 @@ import {
   LooksRareExchange,
   Seaport15,
   X2Y2,
+  USDT,
 } from "./config";
 import { waitForTx } from "../tasks/utils/helpers";
 import { constants, Contract } from "ethers";
@@ -57,6 +59,10 @@ export interface Contracts {
   weth: IWETH;
   bWETH: IBToken;
   debtWETH: IDebtToken;
+
+  // mock erc20
+  usdt: MintableERC20;
+  debtUSDT: IDebtToken;
 
   // nft
   bayc: MintableERC721;
@@ -105,11 +111,15 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
   for (const user of users) {
     // Each user gets 30 WETH
     waitForTx(await contracts.weth.connect(user).deposit({ value: parseEther("100") }));
+    waitForTx(await contracts.usdt.connect(user).mint(parseUnits("100", 6)));
   }
 
   // init aave lend pool
   waitForTx(await contracts.weth.connect(env.admin).deposit({ value: parseEther("1000") }));
   waitForTx(await contracts.weth.connect(env.admin).transfer(contracts.aaveLendPool.address, parseEther("800")));
+
+  waitForTx(await contracts.usdt.connect(env.admin).mint(parseUnits("1000", 6)));
+  waitForTx(await contracts.usdt.connect(env.admin).transfer(contracts.aaveLendPool.address, parseUnits("800", 6)));
 
   // add adapter and fees
   waitForTx(await contracts.downpayment.addAdapter(contracts.punkAdapter.address));
@@ -127,10 +137,16 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
 
   // add reserve balance for bend
   waitForTx(await contracts.weth.connect(env.admin).approve(contracts.bendLendPool.address, constants.MaxUint256));
+  waitForTx(await contracts.usdt.connect(env.admin).approve(contracts.bendLendPool.address, constants.MaxUint256));
   waitForTx(
     await contracts.bendLendPool
       .connect(env.admin)
       .deposit(contracts.weth.address, parseEther("200"), env.admin.address, 0)
+  );
+  waitForTx(
+    await contracts.bendLendPool
+      .connect(env.admin)
+      .deposit(contracts.usdt.address, parseUnits("200", 6), env.admin.address, 0)
   );
 }
 
@@ -149,6 +165,8 @@ export async function setupContracts(): Promise<Contracts> {
   const weth = await ethers.getContractAt("IWETH", getParams(WETH, networkName));
   const debtWETH = await ethers.getContractAt("IDebtToken", bendProtocolParams[2]);
   const bWETH = await ethers.getContractAt("IBToken", bendProtocolParams[3]);
+  const usdt = await ethers.getContractAt("MintableERC20", getParams(USDT, networkName));
+  const debtUSDT = await ethers.getContractAt("IDebtToken", bendProtocolParams[7]);
 
   // nft
   const bayc = await ethers.getContractAt("MintableERC721", getParams(BAYC, networkName));
@@ -223,6 +241,8 @@ export async function setupContracts(): Promise<Contracts> {
     weth,
     bWETH,
     debtWETH,
+    usdt,
+    debtUSDT,
     bayc,
     bBAYC,
     bWPUNK,

@@ -47,6 +47,11 @@ export const WETH: Params<string> = {
   [Network.mainnet]: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 };
 
+export const USDT: Params<string> = {
+  [Network.goerli]: "0x8096Fd3B381164af8421F25c84063B8afC637fE5",
+  [Network.mainnet]: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+};
+
 export const PunkMarket: Params<string[]> = {
   [Network.goerli]: [
     "0xBccC7a1E79215EC3FD36824615801BCeE0Df2eC3", // PunkMarket
@@ -94,6 +99,7 @@ export const BendProtocol: Params<string[]> = {
     "0x83f90CF9c281636a0128614EA043b5d8Ccd380fa", // bWPUNK
     "0x529710d1e2ab61bDea707039bB841583A983b228", // bBAYC
     "0xE7E268cC1D025906fe8f6b076ecc40FF1a8dfA61", // NFTOracle
+    "0xdCc531F4543aB083a2948E23c732F31d5153677D", // debtUSDT
   ],
   [Network.mainnet]: [
     "0x24451f47caf13b24f4b5034e1df6c0e401ec0e46", // addresses provider
@@ -103,6 +109,7 @@ export const BendProtocol: Params<string[]> = {
     "0x6c415673C79b31aCA38669AD9fb5cdb7012C0e8e", // bWPUNK
     "0xDBfD76AF2157Dc15eE4e57F3f942bB45Ba84aF24", // bBAYC
     "0x7C2A19e54e48718f6C60908a9Cff3396E4Ea1eBA", // NFTOracle
+    "0x02716c55f49a9107467507b82f9889480949afe4", // debtUSDT
   ],
 };
 
