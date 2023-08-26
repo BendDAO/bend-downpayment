@@ -1,7 +1,7 @@
 {
-  "name": "@benddao/downpayment",
+  "name": "@benddao/bend-downpayment",
   "version": "1.0.0",
-  "description": "Bend downpayment smart",
+  "description": "BendDAO downpayment smart contracts",
   "author": "BendDAO",
   "license": "MIT",
   "private": false,
@@ -9,10 +9,12 @@
     "/abis/*.json",
     "/contracts/*.sol",
     "/contracts/interfaces/*.sol",
-    "/contracts/libraries/*.sol"
+    "/contracts/libraries/*.sol",
+    "/contracts/adapters/*.sol"
   ],
   "keywords": [
-    "benddao"
+    "benddao",
+    "downpayment"
   ],
   "engines": {
     "node": ">=8.3.0"
@@ -41,7 +43,8 @@
     "test": "hardhat test",
     "test:gas": "REPORT_GAS=true hardhat test",
     "test:coverage": "TS_NODE_TRANSPILE_ONLY=true hardhat coverage && hardhat compile --force",
-    "release": "release-it"
+    "release": "release-it",
+    "prepublishOnly": "npm run compile"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.2",
