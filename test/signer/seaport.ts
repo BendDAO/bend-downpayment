@@ -1,8 +1,4 @@
 /* eslint-disable node/no-extraneous-import */
-import { TypedDataDomain } from "@ethersproject/abstract-signer";
-import { Signature } from "@ethersproject/bytes";
-import { BigNumber, utils, Wallet } from "ethers";
-import { findPrivateKey } from "../helpers/hardhat-keys";
 import {
   OrderParameters,
   OrderComponents,
@@ -27,6 +23,8 @@ import {
 } from "@opensea/seaport-js/lib/utils/order";
 import { isCurrencyItem } from "@opensea/seaport-js/lib/utils/item";
 import { ISeaport } from "../../typechain-types/contracts/interfaces/ISeaport";
+import { ethers } from "hardhat";
+import { Signature, Signer, TypedDataDomain } from "ethers";
 
 export { OrderParameters, ItemType, OrderType };
 
@@ -77,18 +75,18 @@ export const EIP_712_PARAM_TYPE = {
 const EXCHANGE_ADAPTER_NAME = "Seaport Downpayment Adapter";
 const EXCHANGE_ADAPTER_VERSION = "1.0";
 
-const { defaultAbiCoder } = utils;
+const defaultAbiCoder = ethers.AbiCoder.defaultAbiCoder();
 
 export type CreateOrderInput = {
   offerer: string;
   orderType: OrderType;
   conduitKey: string;
-  startTime: BigNumber;
-  endTime: BigNumber;
+  startTime: bigint;
+  endTime: bigint;
   offer: CreateInputItem;
   consideration: ConsiderationInputItem;
   fees: readonly Fee[];
-  nonce: BigNumber;
+  nonce: bigint;
 };
 
 export const createOrder = async (input: CreateOrderInput): Promise<OrderParameters> => {
@@ -131,15 +129,13 @@ export const createOrder = async (input: CreateOrderInput): Promise<OrderParamet
 };
 
 export const signOrder = async (
-  chainId: number,
-  signerAddress: string,
+  chainId: bigint,
+  signer: Signer,
   verifyingContract: string,
   order: OrderParameters,
   conduitKey: string,
-  nonce: BigNumber
+  nonce: bigint
 ): Promise<ISeaport.BasicOrderParametersStruct> => {
-  const signer = new Wallet(await findPrivateKey(signerAddress));
-
   const domainData = {
     name: SEAPORT_CONTRACT_NAME,
     version: SEAPORT_CONTRACT_VERSION_V1_5,
@@ -149,13 +145,14 @@ export const signOrder = async (
 
   const orderComponents: OrderComponents = {
     ...order,
-    counter: nonce.toNumber(),
+    counter: nonce,
   };
 
   // Use EIP-2098 compact signatures to save gas. https://eips.ethereum.org/EIPS/eip-2098
-  const signature = utils.splitSignature(
-    await signer._signTypedData(domainData, EIP_712_ORDER_TYPE, orderComponents)
-  ).compact;
+  const signature = ethers.Signature.from(
+    await signer.signTypedData(domainData, EIP_712_ORDER_TYPE, orderComponents)
+  ).compactSerialized;
+
   const { offer, consideration } = order;
   const offerItem = offer[0];
   const [forOfferer, ...forAdditionalRecipients] = consideration;
@@ -195,11 +192,11 @@ export const signOrder = async (
 };
 
 export const signParams = async (
-  chainId: number,
-  signerAddress: string,
+  chainId: bigint,
+  signer: Signer,
   verifyingContract: string,
   order: ISeaport.BasicOrderParametersStruct,
-  nonce: BigNumber
+  nonce: bigint
 ): Promise<Signature> => {
   const domainData: TypedDataDomain = {
     name: EXCHANGE_ADAPTER_NAME,
@@ -207,10 +204,9 @@ export const signParams = async (
     chainId,
     verifyingContract,
   };
-  const signer = new Wallet(await findPrivateKey(signerAddress));
   const value = { ...order, nonce };
-  const signature = await signer._signTypedData(domainData, EIP_712_PARAM_TYPE, value);
-  return utils.splitSignature(signature);
+  const signature = await signer.signTypedData(domainData, EIP_712_PARAM_TYPE, value);
+  return ethers.Signature.from(signature);
 };
 
 export interface DataWithSignature {
@@ -219,13 +215,13 @@ export interface DataWithSignature {
 }
 
 export async function createSignedFlashloanParams(
-  chainId: number,
-  signerAddress: string,
+  chainId: bigint,
+  signer: Signer,
   verifyingContract: string,
   order: ISeaport.BasicOrderParametersStruct,
-  nonce: BigNumber
+  nonce: bigint
 ): Promise<DataWithSignature> {
-  const sig: Signature = await signParams(chainId, signerAddress, verifyingContract, order, nonce);
+  const sig: Signature = await signParams(chainId, signer, verifyingContract, order, nonce);
   const types =
     "(address,uint256,uint256,address,address,address,uint256,uint256,uint8,uint256,uint256,bytes32,uint256,bytes32,bytes32,uint256,(uint256,address)[],bytes)";
 

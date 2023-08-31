@@ -1,12 +1,9 @@
 import type { HardhatUserConfig } from "hardhat/types";
-import { task } from "hardhat/config";
 import fs from "fs";
 import path from "path";
 
+import "@nomicfoundation/hardhat-toolbox";
 import "@openzeppelin/hardhat-upgrades";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
 import "hardhat-abi-exporter";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
@@ -21,17 +18,12 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 const REPORT_GAS = !!process.env.REPORT_GAS;
 // const GWEI = 1000 * 1000 * 1000;
 
-const tasksPath = path.join(__dirname, "tasks");
-fs.readdirSync(tasksPath)
-  .filter((pth) => pth.includes(".ts"))
-  .forEach((task) => {
-    require(`${tasksPath}/${task}`);
-  });
-
-task("accounts", "Prints the list of accounts", async (_args, hre) => {
-  const accounts = await hre.ethers.getSigners();
-  accounts.forEach(async (account) => console.info(account.address));
-});
+// const tasksPath = path.join(__dirname, "tasks");
+// fs.readdirSync(tasksPath)
+//   .filter((pth) => pth.includes(".ts"))
+//   .forEach((task) => {
+//     require(`${tasksPath}/${task}`);
+//   });
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",

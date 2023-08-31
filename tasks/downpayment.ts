@@ -1,6 +1,4 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
-import { BigNumber, constants } from "ethers";
-import { defaultAbiCoder, parseEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
 import { BendExchange, BendProtocol, getParams, PunkMarket, Seaport14, WETH, X2Y2 } from "../test/config";
 import {

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import low from "lowdb";
 import FileSync from "lowdb/adapters/FileSync";
+import "@nomicfoundation/hardhat-toolbox";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-
 export let DB: low.LowdbSync<any>;
 
 export const initDB = (network: string): void => {

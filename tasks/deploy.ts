@@ -12,7 +12,7 @@ import {
   WETH,
   // X2Y2,
 } from "../test/config";
-import { IDownpayment } from "../typechain-types";
+// import { IDownpayment } from "../typechain-types";
 import {
   deployContract,
   deployProxyContract,
@@ -125,8 +125,8 @@ task("config:addAdapter", "Add adapter")
   .setAction(async ({ adapter }, { run }) => {
     await run("set-DRE");
     console.log(`addAdapter: ${adapter}`);
-    const downpayment = await getContractFromDB<IDownpayment>("Downpayment");
-    await waitForTx(await downpayment.addAdapter(await getContractAddressFromDB(adapter)));
+    // const downpayment = await getContractFromDB<IDownpayment>("Downpayment");
+    // await waitForTx(await downpayment.addAdapter(await getContractAddressFromDB(adapter)));
   });
 
 task("config:removeAdapter", "Remove adapter")
@@ -134,8 +134,8 @@ task("config:removeAdapter", "Remove adapter")
   .setAction(async ({ adapter }, { run }) => {
     await run("set-DRE");
     console.log(`removeAdapter: ${adapter}`);
-    const downpayment = await getContractFromDB<IDownpayment>("Downpayment");
-    await waitForTx(await downpayment.removeAdapter(await getContractAddressFromDB(adapter)));
+    // const downpayment = await getContractFromDB<IDownpayment>("Downpayment");
+    // await waitForTx(await downpayment.removeAdapter(await getContractAddressFromDB(adapter)));
   });
 
 task("config:full", "Config adapters")
@@ -189,7 +189,7 @@ task("upgrade", "upgrade contract")
     // @ts-ignore
     const upgraded = await upgrades.upgradeProxy(proxyAddress, upgradeable, { unsafeSkipStorageCheck: !!skipcheck });
     await upgraded.deployed();
-    const implAddress = await upgrades.erc1967.getImplementationAddress(upgraded.address);
+    const implAddress = await upgrades.erc1967.getImplementationAddress(await upgraded.getAddress());
     console.log("New implmentation at: ", implAddress);
     await verifyEtherscanContract(implAddress, []);
   });

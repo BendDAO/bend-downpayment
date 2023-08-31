@@ -1,26 +1,35 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { constants, Contract, ContractReceipt, ContractTransaction, Signer } from "ethers";
+
+import {
+  BaseContract,
+  Contract,
+  ContractTransactionReceipt,
+  ContractTransactionResponse,
+  Signer,
+  ethers,
+} from "ethers";
 import { verifyEtherscanContract } from "./verification";
 import { DRE, DB } from "./DRE";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-export const waitForTx = async (tx: ContractTransaction): Promise<ContractReceipt> => await tx.wait(1);
+export const waitForTx = async (tx: ContractTransactionResponse | null): Promise<null | ContractTransactionReceipt> =>
+  (await tx?.wait(1)) || null;
 
-export const registerContractInJsonDB = async (contractId: string, contractInstance: Contract): Promise<void> => {
+export const registerContractInJsonDB = async (contractId: string, contractInstance: BaseContract): Promise<void> => {
   const currentNetwork = DRE.network.name;
   console.log(`\n*** ${contractId} ***\n`);
   console.log(`Network: ${currentNetwork}`);
-  console.log(`tx: ${contractInstance.deployTransaction.hash}`);
-  console.log(`contract address: ${contractInstance.address}`);
-  console.log(`deployer address: ${contractInstance.deployTransaction.from}`);
-  console.log(`gas price: ${contractInstance.deployTransaction.gasPrice}`);
-  console.log(`gas used: ${contractInstance.deployTransaction.gasLimit}`);
+  console.log(`tx: ${contractInstance.deploymentTransaction()?.hash}`);
+  console.log(`contract address: ${await contractInstance.getAddress()}`);
+  console.log(`deployer address: ${contractInstance.deploymentTransaction()?.from}`);
+  console.log(`gas price: ${contractInstance.deploymentTransaction()?.gasPrice}`);
+  console.log(`gas used: ${contractInstance.deploymentTransaction()?.gasLimit}`);
   console.log(`\n******`);
   console.log();
 
   DB.set(contractId, {
-    address: contractInstance.address,
-    deployer: contractInstance.deployTransaction.from,
+    address: await contractInstance.getAddress(),
+    deployer: contractInstance.deploymentTransaction()?.from,
   }).write();
 };
 
@@ -35,7 +44,7 @@ export const getContractAddressFromDB = async (id: string): Promise<string> => {
 export const getDeploySigner = async (): Promise<Signer> => (await getSigners())[0];
 
 export const getSigners = async (): Promise<Signer[]> => {
-  return await Promise.all(await DRE.ethers.getSigners());
+  return DRE.ethers.getSigners();
 };
 
 export const getSignerByAddress = async (address: string): Promise<Signer> => {
@@ -45,7 +54,7 @@ export const getSignerByAddress = async (address: string): Promise<Signer> => {
 export const getSignersAddresses = async (): Promise<string[]> =>
   await Promise.all((await getSigners()).map((signer) => signer.getAddress()));
 
-export const deployContract = async (contractName: string, args: any[], verify?: boolean): Promise<Contract> => {
+export const deployContract = async (contractName: string, args: any[], verify?: boolean): Promise<BaseContract> => {
   console.log("deploy", contractName);
   const instance = await (await DRE.ethers.getContractFactory(contractName))
     .connect(await getDeploySigner())
@@ -80,30 +89,30 @@ export const deployProxyContractWithID = async (
 };
 
 export const withSaveAndVerify = async (
-  instance: Contract,
+  instance: BaseContract,
   id: string,
   args: (string | string[] | any)[],
   verify?: boolean
-): Promise<Contract> => {
-  await waitForTx(instance.deployTransaction);
+): Promise<BaseContract> => {
+  await instance.waitForDeployment();
   await registerContractInJsonDB(id, instance);
   if (verify) {
-    let impl = constants.AddressZero;
+    let impl = ethers.ZeroAddress;
     try {
-      impl = await DRE.upgrades.erc1967.getImplementationAddress(instance.address);
+      impl = await DRE.upgrades.erc1967.getImplementationAddress(await instance.getAddress());
     } catch (error) {
-      impl = constants.AddressZero;
+      impl = ethers.ZeroAddress;
     }
-    if (impl !== constants.AddressZero) {
+    if (impl !== ethers.ZeroAddress) {
       await verifyEtherscanContract(impl, []);
     } else {
-      await verifyEtherscanContract(instance.address, args);
+      await verifyEtherscanContract(await instance.getAddress(), args);
     }
   }
   return instance;
 };
 
-export const getChainId = async (): Promise<number> => {
+export const getChainId = async (): Promise<bigint> => {
   return (await DRE.ethers.provider.getNetwork()).chainId;
 };
 

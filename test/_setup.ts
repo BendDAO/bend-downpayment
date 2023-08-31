@@ -1,13 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers, network } from "hardhat";
-import { parseEther } from "ethers/lib/utils";
 import {
   Downpayment,
   PunkAdapter,
   BendExchangeAdapter,
   IWETH,
-  IOpenseaRegistry,
   IAuthorizationManager,
   IAaveLendPool,
   ILendPool,
@@ -18,7 +15,6 @@ import {
   IBToken,
   IWrappedPunks,
   MintableERC721,
-  IOpenseaExchage,
   INFTOracle,
   IBendExchange,
   ILooksRareTransferSelectorNFT,
@@ -41,14 +37,15 @@ import {
   X2Y2,
 } from "./config";
 import { waitForTx } from "../tasks/utils/helpers";
-import { constants, Contract } from "ethers";
+import { BaseContract, MaxUint256, parseEther } from "ethers";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 export interface Env {
   initialized: boolean;
-  fee: number;
+  fee: bigint;
   accounts: SignerWithAddress[];
   admin: SignerWithAddress;
-  chainId: number;
+  chainId: bigint;
 }
 
 export interface Contracts {
@@ -68,9 +65,7 @@ export interface Contracts {
   looksRareExchange: ILooksRareExchange;
   transferNFT: ILooksRareTransferSelectorNFT;
   punkMarket: ICryptoPunksMarket;
-  openseaExchange: IOpenseaExchage;
   bendExchange: IBendExchange;
-  proxyRegistry: IOpenseaRegistry;
   authorizationManager: IAuthorizationManager;
   seaportExchange: ISeaport;
   x2y2Exchange: IX2Y2;
@@ -95,7 +90,7 @@ export interface Contracts {
 }
 
 export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
-  env.fee = 100;
+  env.fee = 100n;
   env.accounts = await ethers.getSigners();
   env.admin = env.accounts[0];
   env.chainId = (await ethers.provider.getNetwork()).chainId;
@@ -106,31 +101,30 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
     // Each user gets 30 WETH
     waitForTx(await contracts.weth.connect(user).deposit({ value: parseEther("100") }));
   }
-
   // init aave lend pool
   waitForTx(await contracts.weth.connect(env.admin).deposit({ value: parseEther("1000") }));
-  waitForTx(await contracts.weth.connect(env.admin).transfer(contracts.aaveLendPool.address, parseEther("800")));
+  waitForTx(await contracts.weth.connect(env.admin).transfer(contracts.aaveLendPool.getAddress(), parseEther("800")));
 
   // add adapter and fees
-  waitForTx(await contracts.downpayment.addAdapter(contracts.punkAdapter.address));
-  waitForTx(await contracts.downpayment.addAdapter(contracts.bendExchangeAdapter.address));
-  waitForTx(await contracts.downpayment.addAdapter(contracts.looksRareExchangeAdapter.address));
-  waitForTx(await contracts.downpayment.addAdapter(contracts.seaportAdapter.address));
-  waitForTx(await contracts.downpayment.addAdapter(contracts.x2y2Adapter.address));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.punkAdapter.getAddress()));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.bendExchangeAdapter.getAddress()));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.looksRareExchangeAdapter.getAddress()));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.seaportAdapter.getAddress()));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.x2y2Adapter.getAddress()));
 
-  waitForTx(await contracts.downpayment.updateFee(contracts.punkAdapter.address, 0)); // test zero fee
+  waitForTx(await contracts.downpayment.updateFee(contracts.punkAdapter.getAddress(), 0)); // test zero fee
 
-  waitForTx(await contracts.downpayment.updateFee(contracts.bendExchangeAdapter.address, env.fee));
-  waitForTx(await contracts.downpayment.updateFee(contracts.looksRareExchangeAdapter.address, env.fee));
-  waitForTx(await contracts.downpayment.updateFee(contracts.seaportAdapter.address, env.fee));
-  waitForTx(await contracts.downpayment.updateFee(contracts.x2y2Adapter.address, env.fee));
+  waitForTx(await contracts.downpayment.updateFee(contracts.bendExchangeAdapter.getAddress(), env.fee));
+  waitForTx(await contracts.downpayment.updateFee(contracts.looksRareExchangeAdapter.getAddress(), env.fee));
+  waitForTx(await contracts.downpayment.updateFee(contracts.seaportAdapter.getAddress(), env.fee));
+  waitForTx(await contracts.downpayment.updateFee(contracts.x2y2Adapter.getAddress(), env.fee));
 
   // add reserve balance for bend
-  waitForTx(await contracts.weth.connect(env.admin).approve(contracts.bendLendPool.address, constants.MaxUint256));
+  waitForTx(await contracts.weth.connect(env.admin).approve(contracts.bendLendPool.getAddress(), MaxUint256));
   waitForTx(
     await contracts.bendLendPool
       .connect(env.admin)
-      .deposit(contracts.weth.address, parseEther("200"), env.admin.address, 0)
+      .deposit(contracts.weth.getAddress(), parseEther("200"), env.admin.getAddress(), 0)
   );
 }
 
@@ -170,12 +164,11 @@ export async function setupContracts(): Promise<Contracts> {
   );
   const seaportExchange = await ethers.getContractAt("ISeaport", seaportParams[0]);
   const x2y2Exchange = await ethers.getContractAt("IX2Y2", x2y2Params[0]);
-
   // aave
   // we mock aave due to no rinkeby addresses
   const MockAaveLendPoolAddressesProvider = await ethers.getContractFactory("MockAaveLendPoolAddressesProvider");
   const mockAaveLendPoolAddressesProvider = await MockAaveLendPoolAddressesProvider.deploy();
-  await mockAaveLendPoolAddressesProvider.deployed();
+  await mockAaveLendPoolAddressesProvider.waitForDeployment();
   const aaveLendPool = await ethers.getContractAt(
     "IAaveLendPool",
     await mockAaveLendPoolAddressesProvider.getLendingPool()
@@ -187,31 +180,30 @@ export async function setupContracts(): Promise<Contracts> {
   const bendCollector = await ethers.getContractAt("IBendCollector", bendProtocolParams[1]);
   const nftOracle = await ethers.getContractAt("INFTOracle", bendProtocolParams[6]);
   // downpayment
-  const downpayment = await deployContract("Downpayment", []);
+  const downpayment = await deployContract<Downpayment>("Downpayment", []);
   await downpayment.initialize(
-    mockAaveLendPoolAddressesProvider.address,
-    bendAddressesProvider.address,
-    bendCollector.address,
-    weth.address
+    mockAaveLendPoolAddressesProvider.getAddress(),
+    bendAddressesProvider.getAddress(),
+    bendCollector.getAddress(),
+    weth.getAddress()
   );
 
   // adapters
 
-  const punkAdapter = await deployContract("PunkAdapter", []);
-  await punkAdapter.initialize(downpayment.address, punkMarket.address, punkMarketParams[1]);
+  const punkAdapter = await deployContract<PunkAdapter>("PunkAdapter", []);
 
-  const bendExchangeAdapter = await deployContract("BendExchangeAdapter", []);
-  await bendExchangeAdapter.initialize(downpayment.address, bendExchange.address);
+  await punkAdapter.initialize(downpayment.getAddress(), punkMarket.getAddress(), punkMarketParams[1]);
+  const bendExchangeAdapter = await deployContract<BendExchangeAdapter>("BendExchangeAdapter", []);
+  await bendExchangeAdapter.initialize(downpayment.getAddress(), bendExchange.getAddress());
 
-  const looksRareExchangeAdapter = await deployContract("LooksRareExchangeAdapter", []);
-  await looksRareExchangeAdapter.initialize(downpayment.address, looksRareExchange.address);
+  const looksRareExchangeAdapter = await deployContract<LooksRareExchangeAdapter>("LooksRareExchangeAdapter", []);
+  await looksRareExchangeAdapter.initialize(downpayment.getAddress(), looksRareExchange.getAddress());
 
-  const seaportAdapter = await deployContract("SeaportAdapter", []);
-  await seaportAdapter.initialize(downpayment.address, seaportExchange.address, seaportParams[2]);
+  const seaportAdapter = await deployContract<SeaportAdapter>("SeaportAdapter", []);
+  await seaportAdapter.initialize(downpayment.getAddress(), seaportExchange.getAddress(), seaportParams[2]);
 
-  const x2y2Adapter = await deployContract("X2Y2Adapter", []);
-  await x2y2Adapter.initialize(downpayment.address, x2y2Exchange.address);
-
+  const x2y2Adapter = await deployContract<X2Y2Adapter>("X2Y2Adapter", []);
+  await x2y2Adapter.initialize(downpayment.getAddress(), x2y2Exchange.getAddress());
   /** Return contracts
    */
   return {
@@ -243,8 +235,12 @@ export async function setupContracts(): Promise<Contracts> {
   } as Contracts;
 }
 
-async function deployContract<ContractType extends Contract>(contractName: string, args: any[]): Promise<ContractType> {
+async function deployContract<ContractType extends BaseContract>(
+  contractName: string,
+  args: any[]
+): Promise<ContractType> {
   const instance = await (await ethers.getContractFactory(contractName)).deploy(...args);
+  await instance.waitForDeployment();
 
   return instance as ContractType;
 }
