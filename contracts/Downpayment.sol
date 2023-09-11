@@ -60,12 +60,33 @@ contract Downpayment is OwnableUpgradeable, ReentrancyGuardUpgradeable, IDownpay
         uint256 borrowAmount,
         bytes calldata data,
         Sig calldata sig
-    ) external payable override onlyWhitelisted(adapter) nonReentrant {
+    ) external payable override {
+        _buy(adapter, borrowAmount, msg.sender, data, sig);
+    }
+
+    function buyOnBehalfOf(
+        address adapter,
+        uint256 borrowAmount,
+        address onBehalfOf,
+        bytes calldata data,
+        Sig calldata sig
+    ) external payable override {
+        _buy(adapter, borrowAmount, onBehalfOf, data, sig);
+    }
+
+    function _buy(
+        address adapter,
+        uint256 borrowAmount,
+        address onBehalfOf,
+        bytes calldata data,
+        Sig calldata sig
+    ) internal onlyWhitelisted(adapter) nonReentrant {
+        address buyer = onBehalfOf;
         if (msg.value > 0) {
-            // Wrap ETH sent to this contract
+            // Wrap ETH
             WETH.deposit{value: msg.value}();
-            // Sent WETH back to sender
-            IERC20Upgradeable(address(WETH)).safeTransfer(msg.sender, msg.value);
+            // Sent WETH
+            IERC20Upgradeable(address(WETH)).safeTransfer(buyer, msg.value);
         }
         IAaveLendPool aavePool = IAaveLendPool(aaveAddressesProvider.getLendingPool());
         address[] memory assets = new address[](1);
@@ -74,9 +95,9 @@ contract Downpayment is OwnableUpgradeable, ReentrancyGuardUpgradeable, IDownpay
         amounts[0] = borrowAmount;
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
-        bytes memory dataWithSignature = abi.encode(data, msg.sender, sig.v, sig.r, sig.s);
+        bytes memory dataWithSignature = abi.encode(data, buyer, sig.v, sig.r, sig.s);
         aavePool.flashLoan(adapter, assets, amounts, modes, address(0), dataWithSignature, 0);
-        _incrementNonce(msg.sender);
+        _incrementNonce(buyer);
     }
 
     function addAdapter(address adapter) external override onlyOwner {

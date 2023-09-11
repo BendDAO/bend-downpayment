@@ -113,6 +113,51 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
     expect(expectBuyerWethBalance).to.be.equal(await contracts.weth.balanceOf(buyer.address));
   }
 
+  async function exceptDownpaymentOnBehalfOfSuccessed(order: OrderParameters, borrowAmount: BigNumber) {
+    const aaveFee = borrowAmount.mul(9).div(10000);
+    const orderPrice = order.consideration.map((i) => BigNumber.from(i.startAmount)).reduce((p, n) => p.add(n));
+    const bendFee = orderPrice.mul(env.fee).div(10000);
+    const paymentAmount = orderPrice.add(aaveFee).add(bendFee).sub(borrowAmount);
+    const expectAaveWethBalance = (await contracts.weth.balanceOf(contracts.aaveLendPool.address)).add(aaveFee);
+
+    const expectBendCollectorWethBalance = (await contracts.weth.balanceOf(contracts.bendCollector.address)).add(
+      bendFee
+    );
+    const expectBuyerWethBalance = (await contracts.weth.balanceOf(buyer.address)).sub(paymentAmount);
+
+    const signedOrder = await signOrder(
+      env.chainId,
+      seller.address,
+      exchange.address,
+      order,
+      conduitKey,
+      exchangeNonce
+    );
+    const dataWithSig = await createSignedFlashloanParams(
+      env.chainId,
+      buyer.address,
+      adapter.address,
+      signedOrder,
+      adapterNonce
+    );
+    waitForTx(
+      await contracts.downpayment
+        .connect(buyer)
+        .buyOnBehalfOf(adapter.address, borrowAmount, buyer.address, dataWithSig.data, dataWithSig.sig)
+    );
+
+    expect(await nft.ownerOf(tokenId)).to.be.equal(bnft.address);
+    expect(await bnft.ownerOf(tokenId)).to.be.equal(buyer.address);
+
+    expect(expectAaveWethBalance).to.be.equal(await contracts.weth.balanceOf(contracts.aaveLendPool.address));
+    assertAlmostEqualTol(
+      expectBendCollectorWethBalance,
+      await contracts.weth.balanceOf(contracts.bendCollector.address),
+      0.01
+    );
+    expect(expectBuyerWethBalance).to.be.equal(await contracts.weth.balanceOf(buyer.address));
+  }
+
   async function approveBuyerWeth() {
     await contracts.weth.connect(buyer).approve(adapter.address, constants.MaxUint256);
   }
@@ -266,5 +311,39 @@ makeSuite("SeaportAdapter", (contracts: Contracts, env: Env, snapshots: Snapshot
       nonce: exchangeNonce,
     });
     await exceptDownpaymentSuccessed(order, borrowAmount);
+  });
+
+  it("downpayment buy on behalf of", async () => {
+    await approveBuyerWeth();
+    await approveBuyerDebtWeth();
+    const order = await createOrder({
+      offerer: seller.address,
+      conduitKey: conduitKey,
+      orderType: OrderType.FULL_OPEN,
+      startTime: now,
+      endTime: now.add(1000),
+      offer: {
+        itemType: ItemType.ERC721,
+        token: nft.address,
+        identifier: tokenId.toString(),
+      },
+      consideration: {
+        token: contracts.weth.address,
+        amount: sellPrice.toString(),
+        recipient: seller.address,
+      },
+      fees: [
+        {
+          basisPoints: 200,
+          recipient: env.accounts[3].address,
+        },
+        {
+          basisPoints: 500,
+          recipient: env.accounts[4].address,
+        },
+      ],
+      nonce: exchangeNonce,
+    });
+    await exceptDownpaymentOnBehalfOfSuccessed(order, borrowAmount);
   });
 });

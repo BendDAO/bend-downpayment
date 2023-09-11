@@ -115,7 +115,6 @@ typechain-types
 # Hardhat files
 cache
 artifacts
-abis/
 
 # Others 
 lib

@@ -30,6 +30,14 @@ interface IDownpayment {
 
     function viewWhitelistedAdapters(uint256 cursor, uint256 size) external view returns (address[] memory, uint256);
 
+    function buyOnBehalfOf(
+        address adapter,
+        uint256 borrowAmount,
+        address onBehalfOf,
+        bytes calldata data,
+        Sig calldata sig
+    ) external payable;
+
     function buy(
         address adapter,
         uint256 borrowAmount,
