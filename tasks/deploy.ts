@@ -10,7 +10,7 @@ import {
   PunkMarket,
   Seaport15,
   WETH,
-  // X2Y2,
+  X2Y2,
 } from "../test/config";
 import { IDownpayment } from "../typechain-types";
 import {
@@ -31,7 +31,7 @@ task("deploy:full", "Deploy all contracts").setAction(async (_, { run }) => {
   await run("deploy:bendExchangeAdapter");
   await run("deploy:punkAdapter");
   await run("deploy:seaport15Adapter");
-  // await run("deploy:x2y2Adapter");
+  await run("deploy:x2y2Adapter");
 });
 
 task("deploy:downpayment", "Deploy downpayment").setAction(async (_, { network, run }) => {
@@ -47,15 +47,15 @@ task("deploy:downpayment", "Deploy downpayment").setAction(async (_, { network, 
   await deployProxyContract("Downpayment", [aaveAddressesProvider, bendAddressesProvider, feeCollector, weth], true);
 });
 
-// task("deploy:x2y2Adapter", "Deploy x2y2Adapter").setAction(async (_, { network, run }) => {
-//   await run("set-DRE");
-//   await run("compile");
-//   const networkName = network.name;
+task("deploy:x2y2Adapter", "Deploy x2y2Adapter").setAction(async (_, { network, run }) => {
+  await run("set-DRE");
+  await run("compile");
+  const networkName = network.name;
 
-//   const exchange = getParams(X2Y2, networkName)[0];
-//   const downpayment = await getContractFromDB("Downpayment");
-//   await deployProxyContract("X2Y2Adapter", [downpayment.address, exchange], true);
-// });
+  const exchange = getParams(X2Y2, networkName)[0];
+  const downpayment = await getContractFromDB("Downpayment");
+  await deployProxyContract("X2Y2Adapter", [downpayment.address, exchange], true);
+});
 
 task("deploy:seaport15Adapter", "Deploy seaportAdapter").setAction(async (_, { network, run }) => {
   await run("set-DRE");
@@ -91,6 +91,16 @@ task("deploy:bendExchangeAdapter", "Deploy bendExchangeAdapter").setAction(async
   const bendExchange = getParams(BendExchange, networkName)[0];
   const downpayment = await getContractFromDB("Downpayment");
   await deployProxyContract("BendExchangeAdapter", [downpayment.address, bendExchange], true);
+});
+
+task("deploy:bendExchangeAdapterV2", "Deploy bendExchangeAdapterV2").setAction(async (_, { network, run }) => {
+  await run("set-DRE");
+  await run("compile");
+  const networkName = network.name;
+
+  const bendExchange = getParams(BendExchange, networkName)[0];
+  const downpayment = await getContractFromDB("Downpayment");
+  await deployProxyContract("BendExchangeAdapterV2", [downpayment.address, bendExchange], true);
 });
 
 task("deploy:punkAdapter", "Deploy punkAdapter").setAction(async (_, { network, run }) => {
@@ -147,13 +157,13 @@ task("config:full", "Config adapters")
     await run("config:addAdapter", { adapter: "BendExchangeAdapter" });
     await run("config:addAdapter", { adapter: "PunkAdapter" });
     await run("config:addAdapter", { adapter: "Seaport15Adapter" });
-    // await run("config:addAdapter", { adapter: "X2Y2Adapter" });
+    await run("config:addAdapter", { adapter: "X2Y2Adapter" });
 
     await run("config:updateFee", { adapter: "LooksRareExchangeAdapter", fee });
     await run("config:updateFee", { adapter: "BendExchangeAdapter", fee });
     await run("config:updateFee", { adapter: "PunkAdapter", fee });
     await run("config:updateFee", { adapter: "Seaport15Adapter", fee });
-    // await run("config:updateFee", { adapter: "X2Y2Adapter", fee });
+    await run("config:updateFee", { adapter: "X2Y2Adapter", fee });
   });
 
 task("prepareUpgrade", "Deploy new implmentation for upgrade")
@@ -208,11 +218,9 @@ task("forceImport", "force import implmentation to proxy")
 
 task("verify:Implementation", "Verify Implementation")
   .addParam("proxyid", "The proxy contract id")
-  .setAction(async ({ proxyid }, { network, upgrades, run }) => {
+  .setAction(async ({ proxyid }, { upgrades, run }) => {
     await run("set-DRE");
     await run("compile");
-    const networkName = network.name;
-
     const proxyAddress = await getContractAddressFromDB(proxyid);
     const implAddress = await upgrades.erc1967.getImplementationAddress(proxyAddress);
     console.log("proxyAddress:", proxyAddress, "implAddress:", implAddress);

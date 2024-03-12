@@ -61,28 +61,28 @@ makeSuite("downpayment", (contracts: Contracts, env: Env) => {
     expect(await contracts.downpayment.isAdapterWhitelisted(contracts.weth.address)).to.be.true;
 
     let numberAdapters = await contracts.downpayment.viewCountWhitelistedAdapters();
-    assert.equal(numberAdapters.toString(), "6");
+    assert.equal(numberAdapters.toString(), "7");
 
     let tx = await contracts.downpayment.viewWhitelistedAdapters("0", "1");
     assert.equal(tx[0].length, 1);
     expect(BigNumber.from(tx[1].toString())).to.be.eq(constants.One);
 
     tx = await contracts.downpayment.viewWhitelistedAdapters("1", "100");
-    assert.equal(tx[0].length, 5);
+    assert.equal(tx[0].length, 6);
     expect(BigNumber.from(tx[1].toString())).to.be.eq(BigNumber.from(numberAdapters.toString()));
 
     await contracts.downpayment.connect(env.admin).removeAdapter(contracts.weth.address);
     expect(await contracts.downpayment.isAdapterWhitelisted(contracts.weth.address)).to.be.false;
 
     numberAdapters = await contracts.downpayment.viewCountWhitelistedAdapters();
-    assert.equal(numberAdapters.toString(), "5");
+    assert.equal(numberAdapters.toString(), "6");
 
     tx = await contracts.downpayment.viewWhitelistedAdapters("0", "1");
     assert.equal(tx[0].length, 1);
     expect(BigNumber.from(tx[1].toString())).to.be.eq(constants.One);
 
     tx = await contracts.downpayment.viewWhitelistedAdapters("1", "100");
-    assert.equal(tx[0].length, 4);
+    assert.equal(tx[0].length, 5);
     expect(BigNumber.from(tx[1].toString())).to.be.eq(BigNumber.from(numberAdapters.toString()));
   });
 });

@@ -34,5 +34,9 @@
   "Seaport15Adapter": {
     "address": "0x8B5ABF01b87f87Fb8e0FfC60D32ed7DD29b1f06b",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "BendExchangeAdapterV2": {
+    "address": "0xb1d69bf6B4d21e0bE7007472722e5B2808d81D68",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }

@@ -11,6 +11,7 @@ import {
   ILendPool,
   ILendPoolAddressesProvider,
   ISeaport,
+  IWETH,
 } from "../typechain-types";
 import { getContractFromDB, getContractAddressFromDB, getChainId, getContract, waitForTx } from "./utils/helpers";
 import * as bend from "../test/signer/bend";
@@ -39,7 +40,7 @@ task("repay", "repay loan")
     const bendLendPool = await getContract<ILendPool>("ILendPool", await bendAddressesProvider.getLendPool());
     const weth = getParams(WETH, network.name);
     const signer = new ethers.Wallet(await findPrivateKey(sender), ethers.provider);
-    const wethContract = await getContract("IWETH", weth);
+    const wethContract = await getContract<IWETH>("IWETH", weth);
     const allowance = await wethContract.allowance(sender, bendLendPool.address);
     if (allowance.lt(constants.MaxUint256)) {
       console.log("approve weth");
@@ -147,7 +148,8 @@ task("downpayment:bendExchange", "downpayment with bend exchange")
   .addParam("nft", "address of nft")
   .addParam("tokenid", "token id of nft")
   .addParam("price", "sell price of nft")
-  .setAction(async ({ maker, taker, nft, tokenid, price }, { ethers, network, run }) => {
+  .addParam("nonce", "nonce of order")
+  .setAction(async ({ maker, taker, nft, tokenid, price, nonce }, { ethers, network, run }) => {
     await run("set-DRE");
     const chainId = await getChainId();
     console.log(`chainId: ${chainId}`);
@@ -155,6 +157,7 @@ task("downpayment:bendExchange", "downpayment with bend exchange")
     console.log(`taker: ${taker}`);
     console.log(`nft: ${nft}`);
     console.log(`tokenid: ${tokenid}`);
+    console.log(`nonce: ${nonce}`);
 
     const config = getParams(BendExchange, network.name);
     const bendExchange = await getContract<IBendExchange>("IBendExchange", config[0]);
@@ -162,7 +165,6 @@ task("downpayment:bendExchange", "downpayment with bend exchange")
 
     const bendExchangeAdapter = await getContractAddressFromDB("BendExchangeAdapter");
     const downpayment = await getContractFromDB<Downpayment>("Downpayment");
-    const nonce = await downpayment.nonces(taker);
 
     const makerSigner = new ethers.Wallet(await findPrivateKey(maker), ethers.provider);
     const takerSigner = new ethers.Wallet(await findPrivateKey(taker), ethers.provider);
@@ -229,7 +231,7 @@ task("downpayment:bendExchange", "downpayment with bend exchange")
         amount: constants.One,
         strategy,
         currency: constants.AddressZero,
-        nonce: constants.Zero,
+        nonce,
         startTime: startTimeOrder,
         endTime: endTimeOrder,
         minPercentageToAsk: constants.Zero,
@@ -239,7 +241,7 @@ task("downpayment:bendExchange", "downpayment with bend exchange")
         verifyingContract: bendExchange.address,
       },
       bendExchangeAdapter,
-      nonce
+      await downpayment.nonces(taker)
     );
     waitForTx(
       await downpayment

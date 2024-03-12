@@ -79,6 +79,25 @@ contract Downpayment is OwnableUpgradeable, ReentrancyGuardUpgradeable, IDownpay
         _incrementNonce(msg.sender);
     }
 
+    function buyWithERC20(
+        address adapter,
+        address currency,
+        uint256 borrowAmount,
+        bytes calldata data,
+        Sig calldata sig
+    ) external override onlyWhitelisted(adapter) nonReentrant {
+        IAaveLendPool aavePool = IAaveLendPool(aaveAddressesProvider.getLendingPool());
+        address[] memory assets = new address[](1);
+        assets[0] = address(currency);
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = borrowAmount;
+        uint256[] memory modes = new uint256[](1);
+        modes[0] = 0;
+        bytes memory dataWithSignature = abi.encode(data, msg.sender, sig.v, sig.r, sig.s);
+        aavePool.flashLoan(adapter, assets, amounts, modes, address(0), dataWithSignature, 0);
+        _incrementNonce(msg.sender);
+    }
+
     function addAdapter(address adapter) external override onlyOwner {
         require(adapter != address(0), "Adapter: can not be null address");
         require(!_whitelistedAdapters.contains(adapter), "Adapter: already whitelisted");
@@ -88,7 +107,6 @@ contract Downpayment is OwnableUpgradeable, ReentrancyGuardUpgradeable, IDownpay
 
     function removeAdapter(address adapter) external override onlyOwner onlyWhitelisted(adapter) {
         _whitelistedAdapters.remove(adapter);
-
         emit AdapterRemoved(adapter);
     }
 

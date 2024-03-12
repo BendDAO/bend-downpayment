@@ -37,6 +37,14 @@ interface IDownpayment {
         Sig calldata sig
     ) external payable;
 
+    function buyWithERC20(
+        address adapter,
+        address currency,
+        uint256 borrowAmount,
+        bytes calldata data,
+        Sig calldata sig
+    ) external;
+
     function addAdapter(address adapter) external;
 
     function removeAdapter(address adapter) external;
