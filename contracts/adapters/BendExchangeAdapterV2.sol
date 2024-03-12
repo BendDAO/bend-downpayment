@@ -4,9 +4,10 @@ pragma solidity 0.8.9;
 import {IBendExchange} from "../interfaces/IBendExchange.sol";
 import {IAuthorizationManager} from "../interfaces/IAuthorizationManager.sol";
 
-import {BaseAdapter} from "./BaseAdapter.sol";
+import {BaseAdapterV2, IERC20Upgradeable, SafeERC20Upgradeable} from "./BaseAdapterV2.sol";
 
-contract BendExchangeAdapter is BaseAdapter {
+contract BendExchangeAdapterV2 is BaseAdapterV2 {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     string public constant NAME = "Bend Exchange Downpayment Adapter";
     string public constant VERSION = "1.0";
 
@@ -33,15 +34,13 @@ contract BendExchangeAdapter is BaseAdapter {
 
         // Check order params
         require(_orderParams.isOrderAsk, "Adapter: maker must ask order");
-        require(
-            _orderParams.currency == address(WETH) || _orderParams.currency == address(0),
-            "Adapter: currency must be ETH or WETH"
-        );
         return
             BaseParams({
                 nftAsset: _orderParams.collection,
                 nftTokenId: _orderParams.tokenId,
-                currency: _orderParams.currency,
+                currency: _orderParams.currency == address(0)
+                    ? IERC20Upgradeable(address(WETH))
+                    : IERC20Upgradeable(_orderParams.currency),
                 salePrice: _orderParams.price,
                 paramsHash: _hashParams(_orderParams, _nonce)
             });
@@ -93,9 +92,15 @@ contract BendExchangeAdapter is BaseAdapter {
             takerBid.interceptorExtra = new bytes(0);
         }
 
-        WETH.approve(proxy, _baseParams.salePrice);
-        bendExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
-        WETH.approve(proxy, 0);
+        if (makerAsk.currency == address(0)) {
+            WETH.approve(proxy, _baseParams.salePrice);
+            bendExchange.matchAskWithTakerBidUsingETHAndWETH(takerBid, makerAsk);
+            WETH.approve(proxy, 0);
+        } else {
+            _baseParams.currency.safeIncreaseAllowance(proxy, _baseParams.salePrice);
+            bendExchange.matchAskWithTakerBid(takerBid, makerAsk);
+            _baseParams.currency.safeApprove(proxy, 0);
+        }
     }
 
     function _decodeParams(bytes memory _params) internal pure returns (IBendExchange.MakerOrder memory) {

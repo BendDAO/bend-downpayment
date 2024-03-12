@@ -29,6 +29,7 @@ import {
   X2Y2Adapter,
   IX2Y2,
   MintableERC20,
+  BendExchangeAdapterV2,
 } from "../typechain-types";
 import {
   getParams,
@@ -87,6 +88,7 @@ export interface Contracts {
   looksRareExchangeAdapter: LooksRareExchangeAdapter;
   seaportAdapter: SeaportAdapter;
   x2y2Adapter: X2Y2Adapter;
+  bendExchangeAdapterV2: BendExchangeAdapterV2;
 
   // aave
   aaveLendPool: IAaveLendPool;
@@ -127,6 +129,7 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
   waitForTx(await contracts.downpayment.addAdapter(contracts.looksRareExchangeAdapter.address));
   waitForTx(await contracts.downpayment.addAdapter(contracts.seaportAdapter.address));
   waitForTx(await contracts.downpayment.addAdapter(contracts.x2y2Adapter.address));
+  waitForTx(await contracts.downpayment.addAdapter(contracts.bendExchangeAdapterV2.address));
 
   waitForTx(await contracts.downpayment.updateFee(contracts.punkAdapter.address, 0)); // test zero fee
 
@@ -134,6 +137,7 @@ export async function setupEnv(env: Env, contracts: Contracts): Promise<void> {
   waitForTx(await contracts.downpayment.updateFee(contracts.looksRareExchangeAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.seaportAdapter.address, env.fee));
   waitForTx(await contracts.downpayment.updateFee(contracts.x2y2Adapter.address, env.fee));
+  waitForTx(await contracts.downpayment.updateFee(contracts.bendExchangeAdapterV2.address, env.fee));
 
   // add reserve balance for bend
   waitForTx(await contracts.weth.connect(env.admin).approve(contracts.bendLendPool.address, constants.MaxUint256));
@@ -230,6 +234,9 @@ export async function setupContracts(): Promise<Contracts> {
   const x2y2Adapter = await deployContract("X2Y2Adapter", []);
   await x2y2Adapter.initialize(downpayment.address, x2y2Exchange.address);
 
+  const bendExchangeAdapterV2 = await deployContract("BendExchangeAdapterV2", []);
+  await bendExchangeAdapterV2.initialize(downpayment.address, bendExchange.address);
+
   /** Return contracts
    */
   return {
@@ -255,6 +262,7 @@ export async function setupContracts(): Promise<Contracts> {
     bendExchangeAdapter,
     bendExchange,
     authorizationManager,
+    bendExchangeAdapterV2,
     aaveLendPool,
     bendLendPool,
     nftOracle,

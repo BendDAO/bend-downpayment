@@ -93,6 +93,16 @@ task("deploy:bendExchangeAdapter", "Deploy bendExchangeAdapter").setAction(async
   await deployProxyContract("BendExchangeAdapter", [downpayment.address, bendExchange], true);
 });
 
+task("deploy:bendExchangeAdapterV2", "Deploy bendExchangeAdapterV2").setAction(async (_, { network, run }) => {
+  await run("set-DRE");
+  await run("compile");
+  const networkName = network.name;
+
+  const bendExchange = getParams(BendExchange, networkName)[0];
+  const downpayment = await getContractFromDB("Downpayment");
+  await deployProxyContract("BendExchangeAdapterV2", [downpayment.address, bendExchange], true);
+});
+
 task("deploy:punkAdapter", "Deploy punkAdapter").setAction(async (_, { network, run }) => {
   await run("set-DRE");
   await run("compile");
