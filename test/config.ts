@@ -1,16 +1,20 @@
 export enum Network {
+  sepolia = "sepolia",
   goerli = "goerli",
   mainnet = "mainnet",
 }
 
 export interface Params<T> {
+  [Network.sepolia]: T;
   [Network.goerli]: T;
   [Network.mainnet]: T;
 }
 
-export const getParams = <T>({ goerli, mainnet }: Params<T>, network: string): T => {
+export const getParams = <T>({ sepolia, goerli, mainnet }: Params<T>, network: string): T => {
   network = Network[network as keyof typeof Network];
   switch (network) {
+    case Network.sepolia:
+      return sepolia;
     case Network.goerli:
       return goerli;
     case Network.mainnet:
@@ -24,6 +28,9 @@ const INFURA_KEY = process.env.INFURA_KEY || "";
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY || "";
 
 export const NETWORKS_RPC_URL: Params<string> = {
+  [Network.sepolia]: ALCHEMY_KEY
+    ? `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`
+    : `https://sepolia.infura.io/v3/${INFURA_KEY}`,
   [Network.goerli]: ALCHEMY_KEY
     ? `https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_KEY}`
     : `https://goerli.infura.io/v3/${INFURA_KEY}`,
@@ -33,26 +40,34 @@ export const NETWORKS_RPC_URL: Params<string> = {
 };
 
 export const FeeCollector: Params<string> = {
+  [Network.sepolia]: "0x337035aFA98B3B552e714B04347f51968486706B",
   [Network.goerli]: "0x3C9f44Dac66d56DcD8dFb4bC361AA4b72aCA8C08",
   [Network.mainnet]: "0xDfB8Aff6642AE9Bc1612E3723178409a197C9770",
 };
 
 export const AAVE: Params<string> = {
+  [Network.sepolia]: "0x08012D29438Ab7c7Ebac8AeFB2Bb692Dd746E9B6", // address provider
   [Network.goerli]: "0x8beFfFcECA4b9f0E29C1e89792d0782F51287979", // address provider
   [Network.mainnet]: "0xb53c1a33016b2dc2ff3653530bff1848a515c8c5", // address provider
 };
 
 export const WETH: Params<string> = {
+  [Network.sepolia]: "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
   [Network.goerli]: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
   [Network.mainnet]: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 };
 
 export const USDT: Params<string> = {
+  [Network.sepolia]: "0x53cEd787Ba91B4f872b961914faE013ccF8b0236",
   [Network.goerli]: "0x8096Fd3B381164af8421F25c84063B8afC637fE5",
   [Network.mainnet]: "0xdac17f958d2ee523a2206206994597c13d831ec7",
 };
 
 export const PunkMarket: Params<string[]> = {
+  [Network.sepolia]: [
+    "0x554309B0888c37139D6E31aBAe30B4502915B5DB", // PunkMarket
+    "0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b", // WrappedPunk
+  ],
   [Network.goerli]: [
     "0xBccC7a1E79215EC3FD36824615801BCeE0Df2eC3", // PunkMarket
     "0xbeD1e8B430FD512b82A18cb121a8442F3889E505", // WrappedPunk
@@ -64,11 +79,16 @@ export const PunkMarket: Params<string[]> = {
 };
 
 export const BAYC: Params<string> = {
+  [Network.sepolia]: "0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B",
   [Network.goerli]: "0x30d190032A34d6151073a7DB8793c01Aa05987ec",
   [Network.mainnet]: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
 };
 
 export const BendExchange: Params<string[]> = {
+  [Network.sepolia]: [
+    "0xBe410D495B843e4874a029580B7eAA6F3611107B", // BendExchange
+    "0x7f803E6ae59094d5cFaD288C664b4401Dca8a068", // StrategyStandardSaleForFixedPrice
+  ],
   [Network.goerli]: [
     "0xA897599f8dAf1170b6e1391f1De66f69BAB9617F", // BendExchange
     "0x2B72aA8191C674734668b7A6459e3314e786cB10", // StrategyStandardSaleForFixedPrice
@@ -80,6 +100,10 @@ export const BendExchange: Params<string[]> = {
 };
 
 export const LooksRareExchange: Params<string[]> = {
+  [Network.sepolia]: [
+    "", // LooksRareExchange
+    "", // StrategyStandardSaleForFixedPrice
+  ],
   [Network.goerli]: [
     "0xD112466471b5438C1ca2D218694200e49d81D047", // LooksRareExchange
     "0xc771c0A3a7d738A1E12Aa88829A658bAefb32f0f", // StrategyStandardSaleForFixedPrice
@@ -91,6 +115,16 @@ export const LooksRareExchange: Params<string[]> = {
 };
 
 export const BendProtocol: Params<string[]> = {
+  [Network.sepolia]: [
+    "0x95e84AED75EB9A545D817c391A0011E0B34EAf5C", // addresses provider
+    "0xdd3eC916c0B438b9DB2Ee675cBD412c46763a641", // bend collector
+    "0x9ca8943Fb310d2c06DFB4D27Ea3d566B4bdC0971", // debtWETH
+    "0xD1E6d2B2D2205Ca77632c831bb8b5e468a270975", // bWETH
+    "0x66520b42E227c6112AAf7521b5AefF99D5135C65", // bWPUNK
+    "0x32c1505FDD059cD03687c105709d0cC8B0c60A0C", // bBAYC
+    "0xF143144Fb2703C8aeefD0c4D06d29F5Bb0a9C60A", // NFTOracle
+    "", // debtUSDT
+  ],
   [Network.goerli]: [
     "0x1cba0A3e18be7f210713c9AC9FE17955359cC99B", // addresses provider
     "0x32B08f895d93a207e8A5C9405870D780A43b25Dd", // bend collector
@@ -114,6 +148,11 @@ export const BendProtocol: Params<string[]> = {
 };
 
 export const Seaport14: Params<string[]> = {
+  [Network.sepolia]: [
+    "0x00000000000001ad428e4906aE43D8F9852d0dD6", // exchange
+    "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
+    "0x1e0049783f008a0085193e00003d00cd54003c71", // OPENSEA_CONDUIT_ADDRESS
+  ],
   [Network.goerli]: [
     "0x00000000000001ad428e4906aE43D8F9852d0dD6", // exchange
     "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
@@ -127,6 +166,11 @@ export const Seaport14: Params<string[]> = {
 };
 
 export const Seaport15: Params<string[]> = {
+  [Network.sepolia]: [
+    "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC", // exchange
+    "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
+    "0x1e0049783f008a0085193e00003d00cd54003c71", // OPENSEA_CONDUIT_ADDRESS
+  ],
   [Network.goerli]: [
     "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC", // exchange
     "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
@@ -140,6 +184,11 @@ export const Seaport15: Params<string[]> = {
 };
 
 export const X2Y2: Params<string[]> = {
+  [Network.sepolia]: [
+    "0x0000000000000000000000000000000000000000", // X2Y2
+    "0x0000000000000000000000000000000000000000", // ERC721Delegate
+    "0x0000000000000000000000000000000000000000", // owner
+  ],
   [Network.goerli]: [
     "0x0000000000000000000000000000000000000000", // X2Y2
     "0x0000000000000000000000000000000000000000", // ERC721Delegate

@@ -1,0 +1,18 @@
+{
+  "Downpayment": {
+    "address": "0xD6ED460Dea089C07DA8ca7d292BfF830C6A294A9",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "PunkAdapter": {
+    "address": "0x52f51701ed1B560108fF71862330f9C8b4a15c8e",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "Seaport15Adapter": {
+    "address": "0x75De610912496247F085A499e8ea62Aaf8C76179",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "BendExchangeAdapterV2": {
+    "address": "0xeC099722519dCe224Ad096781ba2791032003D3e",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  }
+}

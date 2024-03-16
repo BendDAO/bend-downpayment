@@ -44,6 +44,17 @@ const config: HardhatUserConfig = {
         blockNumber: 9487196,
       },
     },
+    sepolia: {
+      url: NETWORKS_RPC_URL[Network.sepolia],
+      accounts: PRIVATE_KEY
+        ? [PRIVATE_KEY]
+        : {
+            mnemonic: MNEMONIC,
+            path: MNEMONIC_PATH,
+            initialIndex: 0,
+            count: 20,
+          },
+    },
     goerli: {
       url: NETWORKS_RPC_URL[Network.goerli],
       accounts: PRIVATE_KEY
