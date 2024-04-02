@@ -236,8 +236,8 @@ abstract contract BaseAdapterV2 is
 
     function _repayFlashLoan(IERC20Upgradeable currency_, uint256 flashLoanDebt_) internal {
         address aaveLendPool = address(downpayment.getAaveLendPool());
-        currency_.approve(aaveLendPool, 0);
-        currency_.approve(aaveLendPool, flashLoanDebt_);
+        currency_.safeApprove(aaveLendPool, 0);
+        currency_.safeApprove(aaveLendPool, flashLoanDebt_);
     }
 
     function _checkSig(
