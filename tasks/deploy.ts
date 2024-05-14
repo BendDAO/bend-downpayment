@@ -12,7 +12,7 @@ import {
   WETH,
   X2Y2,
 } from "../test/config";
-import { IDownpayment } from "../typechain-types";
+import { IDownpayment, SeaportAdapter } from "../typechain-types";
 import {
   deployContract,
   deployProxyContract,
@@ -22,6 +22,7 @@ import {
   waitForTx,
 } from "./utils/helpers";
 import { verifyEtherscanContract } from "./utils/verification";
+import { Seaport } from "@opensea/seaport-js/lib/typechain/Seaport";
 
 task("deploy:full", "Deploy all contracts").setAction(async (_, { run }) => {
   await run("set-DRE");
@@ -146,6 +147,15 @@ task("config:removeAdapter", "Remove adapter")
     console.log(`removeAdapter: ${adapter}`);
     const downpayment = await getContractFromDB<IDownpayment>("Downpayment");
     await waitForTx(await downpayment.removeAdapter(await getContractAddressFromDB(adapter)));
+  });
+
+task("upgradeSeaport", "")
+  .addParam("seaport", "address of seaport")
+  .setAction(async ({ seaport }, { run }) => {
+    await run("set-DRE");
+    await run("compile");
+    const seaport16Adapter = await getContractFromDB<SeaportAdapter>("Seaport15Adapter");
+    await waitForTx(await seaport16Adapter.updateSeaportExchange(seaport));
   });
 
 task("config:full", "Config adapters")
