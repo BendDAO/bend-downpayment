@@ -183,6 +183,20 @@ export const Seaport15: Params<string[]> = {
   ],
 };
 
+export const Seaport16: Params<string[]> = {
+  [Network.sepolia]: [
+    "0x0000000000000068F116a894984e2DB1123eB395", // exchange
+    "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
+    "0x1e0049783f008a0085193e00003d00cd54003c71", // OPENSEA_CONDUIT_ADDRESS
+  ],
+  [Network.goerli]: [],
+  [Network.mainnet]: [
+    "0x0000000000000068F116a894984e2DB1123eB395", // exchange
+    "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // OPENSEA_CONDUIT_KEY
+    "0x1e0049783f008a0085193e00003d00cd54003c71", // OPENSEA_CONDUIT_ADDRESS
+  ],
+};
+
 export const X2Y2: Params<string[]> = {
   [Network.sepolia]: [
     "0x0000000000000000000000000000000000000000", // X2Y2

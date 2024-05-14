@@ -40,8 +40,8 @@ const config: HardhatUserConfig = {
       chainId: 5,
       initialBaseFeePerGas: 0,
       forking: {
-        url: NETWORKS_RPC_URL[Network.goerli],
-        blockNumber: 9487196,
+        url: NETWORKS_RPC_URL[Network.sepolia],
+        blockNumber: 5900038,
       },
     },
     sepolia: {
