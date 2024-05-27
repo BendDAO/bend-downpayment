@@ -16,7 +16,11 @@ contract SeaportAdapter is BaseAdapter {
     ISeaport public seaportExchange;
     address public conduitAddress;
 
-    function initialize(address _downpayment, address _seaportExchange, address _conduitAddress) external initializer {
+    function initialize(
+        address _downpayment,
+        address _seaportExchange,
+        address _conduitAddress
+    ) external initializer {
         __BaseAdapter_init(NAME, VERSION, _downpayment);
         seaportExchange = ISeaport(_seaportExchange);
         conduitAddress = _conduitAddress;
@@ -60,10 +64,11 @@ contract SeaportAdapter is BaseAdapter {
             });
     }
 
-    function _hashParams(
-        ISeaport.BasicOrderParameters memory _orderParams,
-        uint256 _nonce
-    ) internal pure returns (bytes32) {
+    function _hashParams(ISeaport.BasicOrderParameters memory _orderParams, uint256 _nonce)
+        internal
+        pure
+        returns (bytes32)
+    {
         return
             keccak256(
                 bytes.concat(
@@ -95,9 +100,11 @@ contract SeaportAdapter is BaseAdapter {
             );
     }
 
-    function _hashAdditionalRecipient(
-        ISeaport.AdditionalRecipient[] memory recipients
-    ) internal pure returns (bytes32) {
+    function _hashAdditionalRecipient(ISeaport.AdditionalRecipient[] memory recipients)
+        internal
+        pure
+        returns (bytes32)
+    {
         bytes memory encoded;
         for (uint256 i = 0; i < recipients.length; i++) {
             ISeaport.AdditionalRecipient memory recipient = (recipients[i]);
